@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from flask import Flask, jsonify, request, send_from_directory
+from flask_cors import CORS
 
 try:
     from .ai_explainer import ai_available, generate_explanation
@@ -23,6 +25,7 @@ FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
 def create_app() -> Flask:
     app = Flask(__name__, static_folder=str(FRONTEND_DIR), static_url_path="")
+    CORS(app, resources={r"/api/*": {"origins": resolve_cors_origins()}})
 
     @app.get("/")
     def serve_index() -> Any:
@@ -67,6 +70,13 @@ def create_app() -> Flask:
         return send_from_directory(FRONTEND_DIR, "index.html")
 
     return app
+
+
+def resolve_cors_origins() -> str | list[str]:
+    raw_origins = os.getenv("THREATSCOPE_CORS_ORIGINS", "*").strip()
+    if raw_origins == "*":
+        return "*"
+    return [origin.strip() for origin in raw_origins.split(",") if origin.strip()]
 
 
 def build_report(payload: dict[str, Any]) -> dict[str, Any]:
@@ -203,4 +213,7 @@ app = create_app()
 
 
 if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=5000, debug=True)
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "5000"))
+    debug = os.getenv("FLASK_DEBUG", "0") == "1"
+    app.run(host=host, port=port, debug=debug)

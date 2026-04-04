@@ -125,41 +125,69 @@
         <section class="widget workspace-widget" id="workspace">
             <div class="workspace-frame">
                 <aside class="matte-panel control-panel">
-                    <div class="panel-head">
-                        <span class="label">Module Selection</span>
-                        <h2>Control Deck</h2>
-                        <p>Choose which analysis stages to run, then provide logs, host details, or a demo profile.</p>
+                    <div class="deck-top">
+                        <div>
+                            <span class="label">Workspace Console</span>
+                            <h2>Control Deck</h2>
+                        </div>
+                        <div class="deck-strip">
+                            <span class="deck-badge">Rule-first</span>
+                            <span class="deck-badge">Render-ready</span>
+                        </div>
                     </div>
+                    <p class="deck-intro">Pick the engines you want, point the frontend at your backend when needed, then feed logs and exposure data into the scoring pipeline.</p>
 
-                    <div class="module-stack">
-                        <button class="module-toggle is-active haptic-btn" data-module="logs" type="button" aria-pressed="true">
-                            <span class="module-state"></span>
-                            <span class="module-copy">
-                                <strong>Log Analyzer</strong>
-                                <small>Repeated failures, exploit strings, off-hours patterns</small>
-                            </span>
-                            <span class="module-flag">ON</span>
-                        </button>
-                        <button class="module-toggle is-active haptic-btn" data-module="ports" type="button" aria-pressed="true">
-                            <span class="module-state"></span>
-                            <span class="module-copy">
-                                <strong>Port Scanner</strong>
-                                <small>Live or simulated exposure mapped to service risk</small>
-                            </span>
-                            <span class="module-flag">ON</span>
-                        </button>
-                        <button class="module-toggle is-active haptic-btn" data-module="correlation" type="button" aria-pressed="true">
-                            <span class="module-state"></span>
-                            <span class="module-copy">
-                                <strong>Correlation Engine</strong>
-                                <small>Cross-module rule trace and final threat classification</small>
-                            </span>
-                            <span class="module-flag">ON</span>
-                        </button>
-                    </div>
+                    <section class="deck-card">
+                        <div class="cluster-head">
+                            <span class="label">Analysis Lanes</span>
+                            <span class="cluster-note">toggle individual engines</span>
+                        </div>
+                        <div class="deck-lanes">
+                            <button class="module-toggle is-active" data-module="logs" type="button" aria-pressed="true">
+                                <span class="module-state"></span>
+                                <span class="module-copy">
+                                    <strong>Log Analyzer</strong>
+                                    <small>Failed authentication pressure, exploit strings, and off-hours anomalies.</small>
+                                </span>
+                                <span class="module-flag">ON</span>
+                            </button>
+                            <button class="module-toggle is-active" data-module="ports" type="button" aria-pressed="true">
+                                <span class="module-state"></span>
+                                <span class="module-copy">
+                                    <strong>Port Scanner</strong>
+                                    <small>Declared or simulated service exposure mapped into service-level risk.</small>
+                                </span>
+                                <span class="module-flag">ON</span>
+                            </button>
+                            <button class="module-toggle is-active" data-module="correlation" type="button" aria-pressed="true">
+                                <span class="module-state"></span>
+                                <span class="module-copy">
+                                    <strong>Correlation Engine</strong>
+                                    <small>Cross-module rule linking that produces the final threat call.</small>
+                                </span>
+                                <span class="module-flag">ON</span>
+                            </button>
+                        </div>
+                    </section>
 
-                    <div class="control-block compact-block">
-                        <div class="field-grid">
+                    <section class="deck-card">
+                        <div class="cluster-head">
+                            <span class="label">Backend Route</span>
+                            <span class="cluster-note">optional render target</span>
+                        </div>
+                        <div class="field-box wide-field">
+                            <label for="apiBaseUrl">API Base URL</label>
+                            <input id="apiBaseUrl" type="text" placeholder="https://your-backend.onrender.com" />
+                        </div>
+                        <p class="helper-copy">Leave this blank while working locally. Set your Render backend URL here when the frontend is hosted separately.</p>
+                    </section>
+
+                    <section class="deck-card">
+                        <div class="cluster-head">
+                            <span class="label">Target Profile</span>
+                            <span class="cluster-note">host and surface scope</span>
+                        </div>
+                        <div class="deck-grid">
                             <div class="field-box">
                                 <label for="targetHost">Target Host</label>
                                 <input id="targetHost" type="text" value="127.0.0.1" placeholder="127.0.0.1 or demo-host" />
@@ -170,20 +198,24 @@
                                     placeholder="22,80,443" />
                             </div>
                         </div>
-                        <label class="switch-row" for="simulateScan">
+                        <label class="switch-row deck-switch" for="simulateScan">
                             <input id="simulateScan" type="checkbox" />
                             <span>Use deterministic simulation profile</span>
                         </label>
-                        <p class="helper-copy">Live scan checks only the listed ports on one host. Simulation keeps demo results stable.</p>
-                    </div>
+                        <p class="helper-copy">Live scan checks only the listed ports on one host. Simulation keeps demo results stable for demos and hosted previews.</p>
+                    </section>
 
-                    <div class="control-block">
+                    <section class="deck-card log-card">
+                        <div class="cluster-head">
+                            <span class="label">Telemetry Intake</span>
+                            <span class="cluster-note">paste source data</span>
+                        </div>
                         <label for="logInput">Raw Logs / Security Data</label>
                         <textarea id="logInput"
                             placeholder="Paste auth, web, reverse proxy, or system logs here..."></textarea>
-                    </div>
+                    </section>
 
-                    <div class="button-row">
+                    <div class="deck-actions">
                         <button class="action-btn primary haptic-btn" id="runAnalysisBtn" type="button">Run Analysis</button>
                         <button class="action-btn secondary haptic-btn" id="loadSampleBtn" type="button">Load Sample</button>
                         <button class="action-btn tertiary haptic-btn" id="clearBtn" type="button">Clear</button>
@@ -331,6 +363,7 @@
         </footer>
     </main>
 
+    <script src="config.js"></script>
     <script src="app.js"></script>
 </body>
 

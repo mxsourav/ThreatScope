@@ -45,7 +45,10 @@ frontend/
   index.html
   style.css
   app.js
+  config.js
   assets/
+
+render.yaml
 ```
 
 ## Run locally
@@ -69,12 +72,26 @@ python backend/engine.py
 
 Copy `.env.example` to `.env` and add your NVIDIA credentials if you want the optional explanation feature. The core analysis engine works without it.
 
+## Render backend
+
+The backend is ready to deploy on Render through `render.yaml`.
+
+- Build command: `pip install -r requirements.txt`
+- Start command: `gunicorn backend.engine:app`
+- Default host binding: `0.0.0.0`
+- Default CORS policy: `*` for `/api/*`
+
+After deploying the backend, you can point the frontend to it in either of two ways:
+
+- Paste the Render URL into the `API Base URL` field in the control deck.
+- Set `window.THREATSCOPE_CONFIG.apiBaseUrl` in `frontend/config.js` before publishing the frontend.
+
 ## GitHub Pages
 
 The repository includes a Pages workflow that publishes the frontend automatically from `main`.
 
 - Hosted mode keeps the dashboard usable with an in-browser fallback engine.
-- Live socket scanning and NVIDIA explanations still require the local Flask backend.
+- Live socket scanning and NVIDIA explanations require either the local Flask backend or a deployed backend such as Render.
 
 ## Open source
 

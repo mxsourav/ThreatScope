@@ -10,10 +10,13 @@ All notable changes to this project are recorded here.
 - Swapped idle `LOW` placeholders to yellow `NULL` states for ready-only cards.
 - Added footer credit and GitHub profile link for MX SOURAV.
 - Replaced the oversized draft mark with a smaller text-based logo and cleaned the hero cards in light mode.
+- Rebuilt the control deck for a cleaner mobile-centered flow with a configurable API route field for hosted backends.
+- Animated the ambient dotted background with slow drift layers in dark and light themes.
 
 ### Added
 - Static-host fallback analysis path so the frontend can still run from GitHub Pages without the Flask backend.
 - GitHub Pages deployment workflow for publishing the frontend automatically from `main`.
+- Render deployment support with CORS-enabled backend startup and a checked-in `render.yaml`.
 
 ## [1.0.0] - 2026-04-04
 ### Published

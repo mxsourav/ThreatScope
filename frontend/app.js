@@ -18,6 +18,7 @@ Apr 04 01:16:12 bastion sshd[4527]: Failed password for backup from 203.0.113.44
 Apr 04 01:18:44 bastion sudo: pam_unix(sudo:auth): authentication failure; logname=dev uid=1001 euid=0 tty=/dev/pts/1 ruser=dev rhost= user=root
 Apr 04 09:42:11 bastion sshd[4610]: Accepted publickey for ops from 10.0.0.12 port 52111 ssh2`;
 const THEME_STORAGE_KEY = "threatscope_theme";
+const API_BASE_STORAGE_KEY = "threatscope_api_base";
 
 const state = {
   modules: {
@@ -27,6 +28,7 @@ const state = {
   },
   lastReport: null,
   aiReady: false,
+  apiBaseUrl: "",
   runtimeMode: "boot",
 };
 
@@ -61,6 +63,7 @@ const els = {
   aiModelBadge: document.getElementById("aiModelBadge"),
   aiBriefContent: document.getElementById("aiBriefContent"),
   analysisMeta: document.getElementById("analysisMeta"),
+  apiBaseUrl: document.getElementById("apiBaseUrl"),
   targetHost: document.getElementById("targetHost"),
   targetPorts: document.getElementById("targetPorts"),
   simulateScan: document.getElementById("simulateScan"),
@@ -72,6 +75,7 @@ const els = {
 
 function init() {
   initTheme();
+  initApiBase();
   syncAdaptiveViewport();
   initTypewriter();
   startReleaseTimer();
@@ -162,6 +166,11 @@ function bindButtons() {
   if (els.themeBtn) {
     els.themeBtn.addEventListener("click", toggleTheme);
   }
+  if (els.apiBaseUrl) {
+    ["change", "blur"].forEach((eventName) => {
+      els.apiBaseUrl.addEventListener(eventName, persistApiBase);
+    });
+  }
   els.runAnalysisBtn.addEventListener("click", runAnalysis);
   els.loadSampleBtn.addEventListener("click", loadSample);
   els.clearBtn.addEventListener("click", clearWorkspace);
@@ -231,6 +240,15 @@ function initTheme() {
   applyTheme(initialTheme);
 }
 
+function initApiBase() {
+  const configBase = sanitizeApiBase(window.THREATSCOPE_CONFIG?.apiBaseUrl || "");
+  const storedBase = sanitizeApiBase(window.localStorage.getItem(API_BASE_STORAGE_KEY) || "");
+  state.apiBaseUrl = storedBase || configBase;
+  if (els.apiBaseUrl) {
+    els.apiBaseUrl.value = state.apiBaseUrl;
+  }
+}
+
 function toggleTheme() {
   const nextTheme = document.body.dataset.theme === "light" ? "dark" : "light";
   applyTheme(nextTheme);
@@ -268,6 +286,24 @@ async function hydrateAiStatus() {
     state.aiReady = false;
     state.runtimeMode = "static";
     els.aiModelBadge.textContent = "LOCAL";
+  }
+}
+
+function persistApiBase() {
+  if (!els.apiBaseUrl) return;
+  const normalized = sanitizeApiBase(els.apiBaseUrl.value);
+  const changed = normalized !== state.apiBaseUrl;
+  state.apiBaseUrl = normalized;
+  els.apiBaseUrl.value = normalized;
+
+  if (normalized) {
+    window.localStorage.setItem(API_BASE_STORAGE_KEY, normalized);
+  } else {
+    window.localStorage.removeItem(API_BASE_STORAGE_KEY);
+  }
+
+  if (changed) {
+    hydrateAiStatus();
   }
 }
 
@@ -782,7 +818,23 @@ function formatTimestamp(value) {
 }
 
 function buildApiUrl(path) {
-  return new URL(path, window.location.href);
+  const normalizedPath = String(path || "").replace(/^\/+/, "");
+  const configuredBase = sanitizeApiBase(
+    state.apiBaseUrl ||
+      els.apiBaseUrl?.value ||
+      window.THREATSCOPE_CONFIG?.apiBaseUrl ||
+      ""
+  );
+
+  if (configuredBase) {
+    return new URL(normalizedPath, `${configuredBase}/`);
+  }
+
+  return new URL(normalizedPath, window.location.href);
+}
+
+function sanitizeApiBase(value) {
+  return String(value || "").trim().replace(/\/+$/, "");
 }
 
 function getIdleAiBadge() {
