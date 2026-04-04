@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ThreatScope | Cybersecurity Analysis System</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Sora:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body data-theme="dark">
+    <div class="ambient-grid"></div>
+    <div class="ambient-orb orb-left"></div>
+    <div class="ambient-orb orb-right"></div>
+
+    <nav id="mainNav">
+        <a class="nav-brand" href="#overview">THREATSCOPE</a>
+
+        <div class="nav-menu">
+            <a href="#overview" class="nav-link active">Overview</a>
+            <a href="#workspace" class="nav-link">Workspace</a>
+            <a href="#findings" class="nav-link">Findings</a>
+        </div>
+
+        <div class="nav-actions">
+            <button class="theme-toggle haptic-btn" id="themeBtn" type="button" aria-label="Switch theme" title="Switch theme">
+                <span class="theme-icon theme-icon-sun" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <circle cx="12" cy="12" r="4.2"></circle>
+                        <path d="M12 2.8v2.3M12 18.9v2.3M21.2 12h-2.3M5.1 12H2.8M18.5 5.5l-1.6 1.6M7.1 16.9l-1.6 1.6M18.5 18.5l-1.6-1.6M7.1 7.1 5.5 5.5"></path>
+                    </svg>
+                </span>
+                <span class="theme-icon theme-icon-moon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                        <path d="M18.2 15.4A7.8 7.8 0 1 1 12.6 3a6.6 6.6 0 0 0 5.6 12.4Z"></path>
+                    </svg>
+                </span>
+            </button>
+        </div>
+    </nav>
+
+    <main class="page-shell" id="pageShell">
+        <section class="widget hero-panel" id="overview">
+            <div class="status-tag">
+                <span class="red-dot"></span>
+                <span>STATUS //</span>
+                <span id="status-text">CALIBRATING DETECTORS</span>
+            </div>
+
+            <div class="hero-layout">
+                <div class="hero-copy">
+                    <div class="hero-brand-band">
+                        <div class="logo-bay" aria-label="Logo placeholder">
+                            <span class="logo-bay-tag">Brand Area</span>
+                            <div class="logo-placeholder">LOGO SPACE</div>
+                        </div>
+                        <div class="tool-brief-card">
+                            <span class="label">Tool Brief</span>
+                            <p class="tool-brief-copy">
+                                ThreatScope is a logic-first cybersecurity dashboard for reviewing logs, exposed
+                                services, and correlated indicators inside one operator view. It is built to present
+                                structured risk insight quickly while keeping the core reasoning deterministic and
+                                explainable.
+                            </p>
+                        </div>
+                    </div>
+                    <span class="eyebrow">Cybersecurity Analysis System</span>
+                    <h1>Rule-based threat analysis for logs, ports, and correlated exposure.</h1>
+                    <p class="hero-desc">
+                        ThreatScope converts raw telemetry into structured threat insights using deterministic
+                        detection rules, service mapping, and multi-condition reasoning. AI is available only as an
+                        optional explanation layer after the core analysis is complete.
+                    </p>
+                    <div class="hero-chips">
+                        <span class="hero-chip">Log Analyzer</span>
+                        <span class="hero-chip">Port Scanner</span>
+                        <span class="hero-chip">Correlation Engine</span>
+                    </div>
+                </div>
+
+                <div class="hero-side">
+                    <div class="hero-console">
+                        <span class="label">Analysis Model</span>
+                        <div class="console-grid">
+                            <div class="console-card">
+                                <span class="console-value">Logic</span>
+                                <span class="console-caption">No AI dependency for scoring</span>
+                            </div>
+                            <div class="console-card">
+                                <span class="console-value">3</span>
+                                <span class="console-caption">Core modules</span>
+                            </div>
+                            <div class="console-card">
+                                <span class="console-value">24/7</span>
+                                <span class="console-caption">Operational framing</span>
+                            </div>
+                            <div class="console-card">
+                                <span class="console-value">JSON</span>
+                                <span class="console-caption">Structured API output</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="widget workspace-widget" id="workspace">
+            <div class="workspace-frame">
+                <aside class="matte-panel control-panel">
+                    <div class="panel-head">
+                        <span class="label">Module Selection</span>
+                        <h2>Control Deck</h2>
+                        <p>Choose which analysis stages to run, then provide logs, host details, or a demo profile.</p>
+                    </div>
+
+                    <div class="module-stack">
+                        <button class="module-toggle is-active haptic-btn" data-module="logs" type="button" aria-pressed="true">
+                            <span class="module-state"></span>
+                            <span class="module-copy">
+                                <strong>Log Analyzer</strong>
+                                <small>Repeated failures, exploit strings, off-hours patterns</small>
+                            </span>
+                        </button>
+                        <button class="module-toggle is-active haptic-btn" data-module="ports" type="button" aria-pressed="true">
+                            <span class="module-state"></span>
+                            <span class="module-copy">
+                                <strong>Port Scanner</strong>
+                                <small>Live or simulated exposure mapped to service risk</small>
+                            </span>
+                        </button>
+                        <button class="module-toggle is-active haptic-btn" data-module="correlation" type="button" aria-pressed="true">
+                            <span class="module-state"></span>
+                            <span class="module-copy">
+                                <strong>Correlation Engine</strong>
+                                <small>Cross-module rule trace and final threat classification</small>
+                            </span>
+                        </button>
+                    </div>
+
+                    <div class="control-block compact-block">
+                        <div class="field-grid">
+                            <div class="field-box">
+                                <label for="targetHost">Target Host</label>
+                                <input id="targetHost" type="text" value="127.0.0.1" placeholder="127.0.0.1 or demo-host" />
+                            </div>
+                            <div class="field-box">
+                                <label for="targetPorts">Ports</label>
+                                <input id="targetPorts" type="text" value="22,80,443,3389,5432,6379,8080"
+                                    placeholder="22,80,443" />
+                            </div>
+                        </div>
+                        <label class="switch-row" for="simulateScan">
+                            <input id="simulateScan" type="checkbox" />
+                            <span>Use deterministic simulation profile</span>
+                        </label>
+                        <p class="helper-copy">Live scan checks only the listed ports on one host. Simulation keeps demo results stable.</p>
+                    </div>
+
+                    <div class="control-block">
+                        <label for="logInput">Raw Logs / Security Data</label>
+                        <textarea id="logInput"
+                            placeholder="Paste auth, web, reverse proxy, or system logs here..."></textarea>
+                    </div>
+
+                    <div class="button-row">
+                        <button class="action-btn primary haptic-btn" id="runAnalysisBtn" type="button">Run Analysis</button>
+                        <button class="action-btn secondary haptic-btn" id="loadSampleBtn" type="button">Load Sample</button>
+                        <button class="action-btn tertiary haptic-btn" id="clearBtn" type="button">Clear</button>
+                    </div>
+                </aside>
+
+                <section class="matte-panel output-panel" id="findings">
+                    <div class="output-head">
+                        <div>
+                            <span class="label">Structured Output</span>
+                            <h2>Threat Board</h2>
+                            <p id="analysisMeta">Awaiting telemetry.</p>
+                        </div>
+
+                        <div class="output-head-actions">
+                            <button class="action-btn small haptic-btn" id="downloadStatsBtn" type="button">Download Stats</button>
+                            <button class="action-btn small haptic-btn" id="aiExplainBtn" type="button">Generate AI Brief</button>
+                            <span class="threat-pill threat-neutral" id="threatLevelBadge">Awaiting Run</span>
+                        </div>
+                    </div>
+
+                    <section class="risk-card" id="riskCard">
+                        <div class="risk-main">
+                            <div class="risk-ring" id="riskRing">
+                                <span id="riskScore">0</span>
+                            </div>
+                            <div class="risk-copy">
+                                <span class="label">Threat Level</span>
+                                <h3 id="riskLevel">No analysis yet</h3>
+                                <p id="riskHeadline">Run one or more modules to generate correlated findings.</p>
+                            </div>
+                        </div>
+
+                        <div class="risk-meta-grid">
+                            <div class="meta-chip">
+                                <span>Confidence</span>
+                                <strong id="confidenceValue">0%</strong>
+                            </div>
+                            <div class="meta-chip">
+                                <span>Rules Fired</span>
+                                <strong id="rulesFiredValue">0</strong>
+                            </div>
+                            <div class="meta-chip">
+                                <span>Open Ports</span>
+                                <strong id="openPortsValue">0</strong>
+                            </div>
+                            <div class="meta-chip">
+                                <span>Failed Logins</span>
+                                <strong id="failedLoginsValue">0</strong>
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="insight-grid">
+                        <section class="info-card">
+                            <div class="card-head">
+                                <span class="label">Reasons</span>
+                                <h3>Why It Was Flagged</h3>
+                            </div>
+                            <ul class="card-list" id="reasonList"></ul>
+                        </section>
+
+                        <section class="info-card">
+                            <div class="card-head">
+                                <span class="label">Actions</span>
+                                <h3>Suggested Response</h3>
+                            </div>
+                            <ul class="card-list" id="actionList"></ul>
+                        </section>
+                    </div>
+
+                    <div class="module-grid">
+                        <article class="result-card" id="logResultCard">
+                            <div class="result-head">
+                                <div>
+                                    <span class="label">Module</span>
+                                    <h3>Log Analyzer</h3>
+                                </div>
+                                <span class="module-score" id="logScoreBadge">0</span>
+                            </div>
+                            <div class="metric-grid" id="logMetrics"></div>
+                            <div class="finding-stack" id="logFindingList"></div>
+                        </article>
+
+                        <article class="result-card" id="portResultCard">
+                            <div class="result-head">
+                                <div>
+                                    <span class="label">Module</span>
+                                    <h3>Port Scanner</h3>
+                                </div>
+                                <span class="module-score" id="portScoreBadge">0</span>
+                            </div>
+                            <div class="metric-grid" id="portMetrics"></div>
+                            <div class="port-stack" id="openPortList"></div>
+                        </article>
+
+                        <article class="result-card wide-card" id="correlationResultCard">
+                            <div class="result-head">
+                                <div>
+                                    <span class="label">Module</span>
+                                    <h3>Correlation Trace</h3>
+                                </div>
+                                <span class="module-score" id="correlationScoreBadge">0</span>
+                            </div>
+                            <div class="trace-grid" id="ruleTraceList"></div>
+                            <div class="path-grid" id="attackPathList"></div>
+                        </article>
+
+                        <article class="result-card wide-card" id="aiBriefCard">
+                            <div class="result-head">
+                                <div class="vendor-title">
+                                    <img class="vendor-icon" src="assets/nvidia.svg" alt="NVIDIA" />
+                                    <div>
+                                    <span class="label">Optional Layer</span>
+                                    <h3>Explanation Brief</h3>
+                                    </div>
+                                </div>
+                                <span class="module-score neutral-score" id="aiModelBadge">OFF</span>
+                            </div>
+                            <div class="ai-brief" id="aiBriefContent">
+                                AI remains optional. Generate a brief only after the rule engine completes a run.
+                            </div>
+                        </article>
+                    </div>
+                </section>
+            </div>
+        </section>
+
+        <footer>
+            <div class="footer-left">
+                <div class="footer-strong">threatscope // cybersecurity_analysis_system_v1</div>
+                <div>
+                    &copy; <span id="yearNow">2026</span> <span class="footer-strong">ThreatScope</span>. Built as a
+                    rule-driven cybersecurity dashboard.
+                </div>
+                <div class="legal">
+                    Deterministic threat scoring first. NVIDIA AI is available only as a post-analysis explanation layer.
+                </div>
+            </div>
+            <div class="footer-right">
+                <span>DESIGNED_IN_OWN_LAB_ROOM_5</span>
+                <span>BUILD AGE: <span id="buildStamp" class="footer-timer">00h 00m 00s passed</span></span>
+            </div>
+        </footer>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+
+</html>
