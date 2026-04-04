@@ -241,12 +241,35 @@ function initTheme() {
 }
 
 function initApiBase() {
-  const configBase = sanitizeApiBase(window.THREATSCOPE_CONFIG?.apiBaseUrl || "");
+  const configBase = getConfiguredApiBase();
   const storedBase = sanitizeApiBase(window.localStorage.getItem(API_BASE_STORAGE_KEY) || "");
   state.apiBaseUrl = storedBase || configBase;
   if (els.apiBaseUrl) {
     els.apiBaseUrl.value = state.apiBaseUrl;
   }
+}
+
+function getConfiguredApiBase() {
+  const host = window.location.hostname.toLowerCase();
+  const hostMap = window.THREATSCOPE_CONFIG?.apiBaseByHost || {};
+  const hostBase = typeof hostMap?.[host] === "string" ? hostMap[host] : "";
+  return sanitizeApiBase(hostBase || window.THREATSCOPE_CONFIG?.apiBaseUrl || "");
+}
+
+function isPreviewOnlyHost() {
+  const host = window.location.hostname.toLowerCase();
+  const previewHosts = Array.isArray(window.THREATSCOPE_CONFIG?.previewOnlyHosts)
+    ? window.THREATSCOPE_CONFIG.previewOnlyHosts
+    : [];
+  return previewHosts.some((entry) => String(entry).toLowerCase() === host);
+}
+
+function getActiveApiBase() {
+  return sanitizeApiBase(
+    state.apiBaseUrl ||
+      els.apiBaseUrl?.value ||
+      getConfiguredApiBase()
+  );
 }
 
 function toggleTheme() {
@@ -277,8 +300,16 @@ function syncAdaptiveViewport() {
 
 async function hydrateAiStatus() {
   try {
-    const response = await fetch(buildApiUrl("api/health"));
-    const data = await response.json();
+    const url = buildApiUrl("api/health");
+    if (!url) {
+      throw new Error("__STATIC_PREVIEW__");
+    }
+
+    const response = await fetch(url);
+    const data = await readResponseBody(response);
+    if (!response.ok || !isStructuredPayload(data)) {
+      throw new Error("__STATIC_FALLBACK__");
+    }
     state.aiReady = Boolean(data.ai_explainer_ready);
     state.runtimeMode = "backend";
     els.aiModelBadge.textContent = state.aiReady ? "READY" : "ENV";
@@ -352,16 +383,24 @@ async function generateAiBrief() {
   setAiBrief("Generating an NVIDIA-backed explanation from the completed report...", "RUN");
 
   try {
-    const response = await fetch(buildApiUrl("api/explain"), {
+    const url = buildApiUrl("api/explain");
+    if (!url) {
+      throw new Error("Hosted API route is unavailable.");
+    }
+
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ report: state.lastReport }),
     });
-    const data = await response.json();
+    const data = await readResponseBody(response);
     if (!response.ok) {
-      throw new Error(data.error || "AI explanation request failed.");
+      throw new Error(getResponseError(data, "AI explanation request failed."));
+    }
+    if (!isStructuredPayload(data)) {
+      throw new Error("AI explanation response was not valid JSON.");
     }
 
     setAiBrief(data.content || "No explanation returned.", data.model || "READY");
@@ -437,26 +476,34 @@ function buildPayload() {
 
 async function requestAnalysis(payload) {
   try {
-    const response = await fetch(buildApiUrl("api/analyze"), {
+    const url = buildApiUrl("api/analyze");
+    if (!url) {
+      throw new Error("__STATIC_PREVIEW__");
+    }
+
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(payload),
     });
-    const data = await response.json();
+    const data = await readResponseBody(response);
 
     if (!response.ok) {
-      if ([404, 405].includes(response.status) || response.status >= 500) {
+      if ([404, 405].includes(response.status) || response.status >= 500 || !isStructuredPayload(data)) {
         throw new Error("__STATIC_FALLBACK__");
       }
-      throw new Error(data.error || "Analysis request failed.");
+      throw new Error(getResponseError(data, "Analysis request failed."));
+    }
+    if (!isStructuredPayload(data)) {
+      throw new Error("__STATIC_FALLBACK__");
     }
 
     state.runtimeMode = "backend";
     return data;
   } catch (error) {
-    if (!(error instanceof TypeError) && error.message !== "__STATIC_FALLBACK__") {
+    if (!shouldUseStaticFallback(error)) {
       throw error;
     }
 
@@ -819,15 +866,14 @@ function formatTimestamp(value) {
 
 function buildApiUrl(path) {
   const normalizedPath = String(path || "").replace(/^\/+/, "");
-  const configuredBase = sanitizeApiBase(
-    state.apiBaseUrl ||
-      els.apiBaseUrl?.value ||
-      window.THREATSCOPE_CONFIG?.apiBaseUrl ||
-      ""
-  );
+  const configuredBase = getActiveApiBase();
 
   if (configuredBase) {
     return new URL(normalizedPath, `${configuredBase}/`);
+  }
+
+  if (isPreviewOnlyHost()) {
+    return null;
   }
 
   return new URL(normalizedPath, window.location.href);
@@ -835,6 +881,44 @@ function buildApiUrl(path) {
 
 function sanitizeApiBase(value) {
   return String(value || "").trim().replace(/\/+$/, "");
+}
+
+async function readResponseBody(response) {
+  const bodyText = await response.text();
+  if (!bodyText) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(bodyText);
+  } catch {
+    return { raw: bodyText };
+  }
+}
+
+function isStructuredPayload(value) {
+  return (
+    Boolean(value) &&
+    typeof value === "object" &&
+    !Array.isArray(value) &&
+    !Object.prototype.hasOwnProperty.call(value, "raw")
+  );
+}
+
+function getResponseError(payload, fallback) {
+  if (isStructuredPayload(payload) && typeof payload.error === "string" && payload.error.trim()) {
+    return payload.error.trim();
+  }
+
+  return fallback;
+}
+
+function shouldUseStaticFallback(error) {
+  if (error instanceof TypeError || error instanceof SyntaxError) {
+    return true;
+  }
+
+  return error?.message === "__STATIC_FALLBACK__" || error?.message === "__STATIC_PREVIEW__";
 }
 
 function getIdleAiBadge() {
