@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here.
 
+## [1.2.4] - 2026-04-04
+### Updated
+- Increased the ambient grain visibility so the texture reads clearly again without overwhelming the UI.
+- Added smoother roaming motion across the page so the grain drifts through the surface instead of zooming toward the viewer.
+- Tuned drift, density, and opacity to keep the effect more cinematic and less like flat static.
+
 ## [1.2.3] - 2026-04-04
 ### Updated
 - Smoothed the animated background texture by crossfading slow noise fields instead of redrawing hard random static every cycle.

@@ -904,7 +904,7 @@ function initAmbientNoise() {
     textureA: null,
     textureB: null,
     swapStartedAt: 0,
-    swapDuration: 2800,
+    swapDuration: 4200,
     phaseA: Math.random() * Math.PI * 2,
     phaseB: Math.random() * Math.PI * 2,
   };
@@ -986,27 +986,45 @@ function renderAmbientNoise(timestamp) {
   }
 
   const eased = progress * progress * (3 - 2 * progress);
-  const driftAmount = 3.4;
-  const driftAX = Math.sin(timestamp / 4200 + phaseA) * driftAmount;
-  const driftAY = Math.cos(timestamp / 4700 + phaseA) * driftAmount * 0.7;
-  const driftBX = Math.sin(timestamp / 4300 + phaseB) * driftAmount;
-  const driftBY = Math.cos(timestamp / 4600 + phaseB) * driftAmount * 0.7;
+  const roamA = getAmbientRoam(timestamp, phaseA, 26, 18, 7600, 9100, 4800);
+  const roamB = getAmbientRoam(timestamp, phaseB, 34, 24, 8800, 10200, 5600);
+  const opacityA = 0.52 * (1 - eased);
+  const opacityB = 0.52 * eased;
 
   context.clearRect(0, 0, width, height);
   context.globalCompositeOperation = "source-over";
-  context.globalAlpha = 0.34 * (1 - eased);
-  context.drawImage(textureA, driftAX - 4, driftAY - 4, width + 8, height + 8);
+  context.globalAlpha = opacityA;
+  drawAmbientLayer(context, textureA, width, height, 1.08, roamA.x, roamA.y);
 
-  context.globalAlpha = 0.34 * eased;
-  context.drawImage(textureB, driftBX - 4, driftBY - 4, width + 8, height + 8);
+  context.globalAlpha = opacityB;
+  drawAmbientLayer(context, textureB, width, height, 1.08, roamB.x, roamB.y);
 
   context.globalAlpha = 1;
 }
 
+function getAmbientRoam(timestamp, phase, radiusX, radiusY, speedX, speedY, speedMix) {
+  const x =
+    Math.sin(timestamp / speedX + phase) * radiusX +
+    Math.cos(timestamp / speedMix + phase * 0.63) * radiusX * 0.42;
+  const y =
+    Math.cos(timestamp / speedY + phase * 0.92) * radiusY +
+    Math.sin(timestamp / (speedMix * 0.86) + phase * 1.14) * radiusY * 0.38;
+
+  return { x, y };
+}
+
+function drawAmbientLayer(context, texture, width, height, scale, offsetX, offsetY) {
+  const drawWidth = width * scale;
+  const drawHeight = height * scale;
+  const x = (width - drawWidth) / 2 + offsetX;
+  const y = (height - drawHeight) / 2 + offsetY;
+  context.drawImage(texture, x, y, drawWidth, drawHeight);
+}
+
 function createAmbientNoiseTexture(width, height, seedOffset) {
   const texture = document.createElement("canvas");
-  const textureWidth = Math.max(280, Math.floor(width * 0.42));
-  const textureHeight = Math.max(280, Math.floor(height * 0.42));
+  const textureWidth = Math.max(320, Math.floor(width * 0.5));
+  const textureHeight = Math.max(320, Math.floor(height * 0.5));
   texture.width = textureWidth;
   texture.height = textureHeight;
 
@@ -1016,8 +1034,8 @@ function createAmbientNoiseTexture(width, height, seedOffset) {
   }
 
   const isLight = document.body.dataset.theme === "light";
-  const density = isLight ? 0.18 : 0.22;
-  const sparkleChance = isLight ? 0.004 : 0.005;
+  const density = isLight ? 0.24 : 0.28;
+  const sparkleChance = isLight ? 0.006 : 0.008;
   const image = textureContext.createImageData(textureWidth, textureHeight);
   const data = image.data;
 
@@ -1044,20 +1062,20 @@ function createAmbientNoiseTexture(width, height, seedOffset) {
 
     const isSparkle = roll > density;
     const alphaBase = isSparkle
-      ? (isLight ? 24 : 30)
-      : (isLight ? 5 : 7);
+      ? (isLight ? 32 : 40)
+      : (isLight ? 9 : 12);
 
     data[index] = red;
     data[index + 1] = green;
     data[index + 2] = blue;
-    data[index + 3] = alphaBase + Math.floor(Math.random() * (isSparkle ? 14 : 8));
+    data[index + 3] = alphaBase + Math.floor(Math.random() * (isSparkle ? 16 : 10));
   }
 
   textureContext.putImageData(image, 0, 0);
   textureContext.globalCompositeOperation = "screen";
   textureContext.fillStyle = isLight
-    ? `rgba(255, 255, 255, ${0.012 + (Number(seedOffset) % 1) * 0.004})`
-    : `rgba(168, 194, 255, ${0.014 + (Number(seedOffset) % 1) * 0.004})`;
+    ? `rgba(255, 255, 255, ${0.016 + (Number(seedOffset) % 1) * 0.004})`
+    : `rgba(168, 194, 255, ${0.02 + (Number(seedOffset) % 1) * 0.005})`;
   textureContext.fillRect(0, 0, textureWidth, textureHeight);
   textureContext.globalCompositeOperation = "source-over";
 
@@ -1069,8 +1087,8 @@ function createAmbientNoiseTexture(width, height, seedOffset) {
     return texture;
   }
 
-  softenedContext.filter = "blur(0.65px)";
-  softenedContext.globalAlpha = 0.96;
+  softenedContext.filter = "blur(0.45px)";
+  softenedContext.globalAlpha = 0.98;
   softenedContext.drawImage(texture, 0, 0);
   softenedContext.filter = "none";
   return softened;
