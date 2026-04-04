@@ -9,6 +9,7 @@ All notable changes to this project are recorded here.
 - Tuned light mode toward a cleaner white and sky-blue finish with higher text readability.
 - Swapped idle `LOW` placeholders to yellow `NULL` states for ready-only cards.
 - Added footer credit and GitHub profile link for MX SOURAV.
+- Replaced the oversized draft mark with a smaller text-based logo and cleaned the hero cards in light mode.
 
 ### Added
 - Static-host fallback analysis path so the frontend can still run from GitHub Pages without the Flask backend.

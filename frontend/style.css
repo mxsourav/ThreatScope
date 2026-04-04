@@ -1,6 +1,6 @@
 :root {
-  --page-top: #0f1115;
-  --page-bottom: #161a22;
+  --page-top: #070c13;
+  --page-bottom: #0d1420;
   --page-ink: #f3f7ff;
   --page-muted: #9ba8bb;
   --page-soft: #667489;
@@ -81,9 +81,9 @@ body {
   font-family: var(--font-display);
   color: var(--page-ink);
   background:
-    radial-gradient(circle at 18% 12%, rgba(58, 160, 255, 0.08), transparent 22%),
-    radial-gradient(circle at 82% 18%, rgba(34, 197, 94, 0.06), transparent 20%),
-    radial-gradient(circle at 50% 75%, rgba(34, 197, 94, 0.04), transparent 24%),
+    radial-gradient(circle at 18% 12%, rgba(44, 111, 197, 0.12), transparent 24%),
+    radial-gradient(circle at 82% 18%, rgba(28, 72, 141, 0.1), transparent 22%),
+    radial-gradient(circle at 50% 75%, rgba(23, 53, 99, 0.08), transparent 26%),
     linear-gradient(180deg, var(--page-top), var(--page-bottom));
   line-height: 1.6;
   letter-spacing: -0.018em;
@@ -125,10 +125,10 @@ a {
 
 body[data-theme="dark"] .ambient-grid {
   background:
-    radial-gradient(circle at 18% 14%, rgba(58, 160, 255, 0.1), transparent 28%),
-    radial-gradient(circle at 82% 24%, rgba(34, 197, 94, 0.08), transparent 24%),
+    radial-gradient(circle at 18% 14%, rgba(58, 160, 255, 0.08), transparent 28%),
+    radial-gradient(circle at 82% 24%, rgba(42, 96, 178, 0.08), transparent 24%),
     radial-gradient(circle, rgba(178, 203, 230, 0.18) 1.15px, transparent 1.9px),
-    radial-gradient(circle, rgba(58, 160, 255, 0.1) 0.7px, transparent 1.5px),
+    radial-gradient(circle, rgba(58, 160, 255, 0.08) 0.7px, transparent 1.5px),
     linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 24%, rgba(255, 255, 255, 0.022));
   background-size: auto, auto, 15px 15px, 29px 29px, auto;
   background-position: center, center, 0 0, 8px 8px, center;
@@ -167,7 +167,7 @@ body[data-theme="light"] .ambient-grid {
 .orb-right {
   right: -140px;
   bottom: -160px;
-  background: rgba(34, 197, 94, 0.12);
+  background: rgba(34, 104, 196, 0.14);
 }
 
 #mainNav {
@@ -345,9 +345,9 @@ body[data-theme="light"] .theme-icon-moon {
 .hero-panel {
   padding: 34px;
   background:
-    radial-gradient(circle at top right, rgba(58, 160, 255, 0.16), transparent 24%),
-    radial-gradient(circle at bottom left, rgba(34, 197, 94, 0.08), transparent 26%),
-    linear-gradient(160deg, rgba(25, 28, 35, 0.98), rgba(14, 16, 20, 0.98));
+    radial-gradient(circle at top right, rgba(58, 160, 255, 0.12), transparent 24%),
+    radial-gradient(circle at bottom left, rgba(26, 70, 138, 0.08), transparent 26%),
+    linear-gradient(160deg, rgba(16, 20, 28, 0.98), rgba(8, 11, 16, 0.98));
   border: 1px solid rgba(255, 255, 255, 0.06);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
@@ -486,7 +486,7 @@ body[data-theme="light"] .theme-icon-moon {
 
 .hero-logo-frame {
   position: relative;
-  min-height: 256px;
+  min-height: 214px;
   margin-top: 14px;
   border-radius: 24px;
   overflow: hidden;
@@ -511,13 +511,64 @@ body[data-theme="light"] .theme-icon-moon {
   pointer-events: none;
 }
 
-.hero-logo-image {
+.hero-logo-mark {
   position: relative;
   z-index: 1;
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
+  width: min(54%, 240px);
+  min-width: 172px;
+  aspect-ratio: 1.35 / 1;
+  margin: auto;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 8px;
+  padding: 18px 20px;
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 24% 20%, rgba(58, 160, 255, 0.16), transparent 34%),
+    linear-gradient(180deg, rgba(18, 24, 34, 0.98), rgba(9, 13, 20, 0.98));
+  border: 1px solid rgba(129, 183, 240, 0.18);
+  box-shadow:
+    0 22px 24px rgba(0, 0, 0, 0.24),
+    0 6px 0 rgba(6, 10, 16, 0.58),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.42);
+}
+
+.hero-logo-kicker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #d7ebff;
+  background: linear-gradient(180deg, rgba(62, 95, 140, 0.98), rgba(25, 47, 76, 0.98));
+  box-shadow:
+    0 8px 12px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.26);
+}
+
+.hero-logo-word {
+  font-size: clamp(1.35rem, 2.1vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  color: #f5f9ff;
+}
+
+.hero-logo-sub {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(177, 202, 230, 0.74);
 }
 
 .eyebrow,
@@ -924,7 +975,9 @@ textarea {
     0 0 0 1px rgba(255, 255, 255, 0.05);
   transition: transform 160ms ease, box-shadow 160ms ease, background var(--transition), filter var(--transition);
   font-weight: 700;
-  letter-spacing: 0;
+  font-size: 0.94rem;
+  letter-spacing: -0.02em;
+  line-height: 1;
   white-space: nowrap;
   text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
 }
@@ -994,15 +1047,24 @@ textarea {
 }
 
 .haptic-btn:active,
-.haptic-btn.is-pressed,
-.module-toggle:active,
-.module-toggle.is-pressed {
+.haptic-btn.is-pressed {
   transform: translateY(3px) scale(0.96);
   box-shadow:
     inset 0 3px 8px rgba(0, 0, 0, 0.48),
     inset 0 1px 0 rgba(255, 255, 255, 0.03),
     0 1px 0 rgba(255, 255, 255, 0.04),
     0 3px 8px rgba(0, 0, 0, 0.16);
+  animation: micro-buzz 160ms linear;
+}
+
+.module-flag:active,
+.module-flag.is-pressed {
+  transform: translateY(2px) scale(0.95);
+  box-shadow:
+    inset 0 3px 6px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 1px 0 rgba(255, 255, 255, 0.04),
+    0 3px 7px rgba(0, 0, 0, 0.14);
   animation: micro-buzz 160ms linear;
 }
 
@@ -1832,6 +1894,22 @@ body[data-theme="light"] .threat-neutral {
     inset 0 -1px 0 rgba(145, 165, 190, 0.14);
 }
 
+body[data-theme="light"] .tool-brief-card,
+body[data-theme="light"] .hero-logo-card,
+body[data-theme="light"] .hero-console {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.99), rgba(236, 245, 255, 0.99));
+  box-shadow:
+    0 16px 26px rgba(103, 126, 153, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94),
+    inset 0 -1px 0 rgba(145, 165, 190, 0.12);
+}
+
+body[data-theme="light"] .tool-brief-card::before,
+body[data-theme="light"] .hero-logo-card::before,
+body[data-theme="light"] .hero-console::before {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.68), rgba(255, 255, 255, 0));
+}
+
 body[data-theme="light"] .matte-panel,
 body[data-theme="light"] .info-card,
 body[data-theme="light"] .result-card,
@@ -1990,13 +2068,38 @@ body[data-theme="light"] .hero-logo-note {
 body[data-theme="light"] .hero-logo-frame {
   background:
     radial-gradient(circle at 18% 18%, rgba(58, 160, 255, 0.12), transparent 24%),
-    radial-gradient(circle at 78% 76%, rgba(34, 197, 94, 0.08), transparent 24%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(228, 237, 246, 0.98));
+    radial-gradient(circle at 78% 76%, rgba(144, 208, 255, 0.14), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(240, 247, 255, 0.99));
   border-color: rgba(58, 160, 255, 0.24);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.86),
     inset 0 -1px 0 rgba(125, 150, 180, 0.12),
     0 14px 22px rgba(103, 126, 153, 0.14);
+}
+
+body[data-theme="light"] .hero-logo-mark {
+  background:
+    radial-gradient(circle at 24% 20%, rgba(120, 196, 255, 0.2), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(237, 246, 255, 0.99));
+  border-color: rgba(103, 186, 255, 0.26);
+  box-shadow:
+    0 16px 18px rgba(103, 126, 153, 0.14),
+    0 4px 0 rgba(177, 195, 214, 0.72),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -2px 0 rgba(179, 196, 216, 0.16);
+}
+
+body[data-theme="light"] .hero-logo-kicker {
+  color: #f6fbff;
+  background: linear-gradient(180deg, rgba(111, 185, 255, 0.98), rgba(59, 134, 230, 0.98));
+}
+
+body[data-theme="light"] .hero-logo-word {
+  color: #14263a;
+}
+
+body[data-theme="light"] .hero-logo-sub {
+  color: #6a86a5;
 }
 
 body[data-threat-level="neutral"] .status-tag {
@@ -2151,9 +2254,15 @@ body.is-mobile-ui .hero-chips {
 }
 
 body.is-mobile-ui .hero-logo-frame {
-  min-height: 184px;
+  min-height: 168px;
   margin-top: 12px;
   border-radius: 20px;
+}
+
+body.is-mobile-ui .hero-logo-mark {
+  width: min(62%, 200px);
+  min-width: 152px;
+  padding: 14px 16px;
 }
 
 body.is-mobile-ui .button-row {

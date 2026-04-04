@@ -170,13 +170,27 @@ function bindButtons() {
 }
 
 function bindHapticFeedback() {
-  document.querySelectorAll(".haptic-btn, .module-toggle").forEach((button) => {
+  document.querySelectorAll(".haptic-btn:not(.module-toggle)").forEach((button) => {
     const triggerPress = () => {
       button.classList.add("is-pressed");
       if (navigator.vibrate) {
         navigator.vibrate(10);
       }
       window.setTimeout(() => button.classList.remove("is-pressed"), 150);
+    };
+
+    button.addEventListener("pointerdown", triggerPress);
+  });
+
+  document.querySelectorAll(".module-toggle").forEach((button) => {
+    const triggerPress = () => {
+      const flag = button.querySelector(".module-flag");
+      if (!flag) return;
+      flag.classList.add("is-pressed");
+      if (navigator.vibrate) {
+        navigator.vibrate(10);
+      }
+      window.setTimeout(() => flag.classList.remove("is-pressed"), 150);
     };
 
     button.addEventListener("pointerdown", triggerPress);
