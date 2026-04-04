@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here.
 
+## [1.2.2] - 2026-04-04
+### Updated
+- Replaced the CSS-only background grain with a live canvas-based shimmer layer for a finer Magic Eraser-style texture.
+- Tuned the background particles toward denser micro-speckles with softer blur and low-amplitude drift instead of larger star-like points.
+- Kept the effect behind the interface so the layout and content remain unchanged while the surface feels more alive.
+
 ## [1.2.1] - 2026-04-04
 ### Updated
 - Replaced the animated dotted backdrop with a softer full-screen grain layer for a calmer textured surface.

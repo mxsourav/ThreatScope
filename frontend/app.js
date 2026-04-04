@@ -30,6 +30,7 @@ const state = {
   aiReady: false,
   apiBaseUrl: "",
   runtimeMode: "boot",
+  ambientNoise: null,
 };
 
 const els = {
@@ -71,11 +72,13 @@ const els = {
   statusText: document.getElementById("status-text"),
   yearNow: document.getElementById("yearNow"),
   buildStamp: document.getElementById("buildStamp"),
+  ambientNoise: document.getElementById("ambientNoise"),
 };
 
 function init() {
   initTheme();
   initApiBase();
+  initAmbientNoise();
   syncAdaptiveViewport();
   initTypewriter();
   startReleaseTimer();
@@ -281,6 +284,7 @@ function applyTheme(theme) {
   document.body.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme;
   window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  refreshAmbientNoise(true);
   if (els.themeBtn) {
     const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
     els.themeBtn.setAttribute("aria-label", label);
@@ -296,6 +300,7 @@ function syncAdaptiveViewport() {
 
   document.body.classList.toggle("is-mobile-ui", isCompactViewport);
   document.body.classList.toggle("is-android-ui", isAndroid && isCompactViewport);
+  resizeAmbientNoise();
 }
 
 async function hydrateAiStatus() {
@@ -877,6 +882,122 @@ function scoreToLevel(score) {
   if (numericScore >= 70) return "HIGH";
   if (numericScore >= 35) return "MEDIUM";
   return "LOW";
+}
+
+function initAmbientNoise() {
+  if (!els.ambientNoise || typeof els.ambientNoise.getContext !== "function") {
+    return;
+  }
+
+  const context = els.ambientNoise.getContext("2d", { alpha: true, desynchronized: true });
+  if (!context) {
+    return;
+  }
+
+  state.ambientNoise = {
+    canvas: els.ambientNoise,
+    context,
+    width: 0,
+    height: 0,
+    dpr: 1,
+    rafId: 0,
+    lastTick: 0,
+  };
+
+  resizeAmbientNoise(true);
+
+  const tick = (timestamp) => {
+    if (!state.ambientNoise) return;
+    if (!state.ambientNoise.lastTick || timestamp - state.ambientNoise.lastTick >= 110) {
+      state.ambientNoise.lastTick = timestamp;
+      drawAmbientNoise();
+    }
+    state.ambientNoise.rafId = window.requestAnimationFrame(tick);
+  };
+
+  state.ambientNoise.rafId = window.requestAnimationFrame(tick);
+}
+
+function resizeAmbientNoise(force = false) {
+  if (!state.ambientNoise) return;
+
+  const dpr = 1;
+  const scale = 1;
+  const width = Math.max(320, Math.floor(window.innerWidth * dpr * scale));
+  const height = Math.max(320, Math.floor(window.innerHeight * dpr * scale));
+
+  if (!force && width === state.ambientNoise.width && height === state.ambientNoise.height) {
+    return;
+  }
+
+  const { canvas, context } = state.ambientNoise;
+  state.ambientNoise.width = width;
+  state.ambientNoise.height = height;
+  state.ambientNoise.dpr = dpr;
+  canvas.width = width;
+  canvas.height = height;
+  context.setTransform(1, 0, 0, 1, 0, 0);
+  context.imageSmoothingEnabled = true;
+  drawAmbientNoise();
+}
+
+function refreshAmbientNoise(forceResize = false) {
+  if (!state.ambientNoise) return;
+  if (forceResize) {
+    resizeAmbientNoise(true);
+    return;
+  }
+  drawAmbientNoise();
+}
+
+function drawAmbientNoise() {
+  if (!state.ambientNoise) return;
+
+  const { context, width, height } = state.ambientNoise;
+  const isLight = document.body.dataset.theme === "light";
+  const density = isLight ? 0.14 : 0.18;
+  const sparkleChance = isLight ? 0.01 : 0.012;
+  const image = context.createImageData(width, height);
+  const data = image.data;
+
+  for (let index = 0; index < data.length; index += 4) {
+    const roll = Math.random();
+    if (roll > density && roll > density + sparkleChance) {
+      continue;
+    }
+
+    const toneRoll = Math.random();
+    let red = 246;
+    let green = 246;
+    let blue = 252;
+
+    if (toneRoll > 0.74) {
+      red = isLight ? 214 : 225;
+      green = isLight ? 229 : 234;
+      blue = 255;
+    } else if (toneRoll < 0.08) {
+      red = 255;
+      green = isLight ? 236 : 224;
+      blue = isLight ? 228 : 214;
+    }
+
+    const isSparkle = roll <= density + sparkleChance && roll > density;
+    const alphaBase = isSparkle
+      ? (isLight ? 42 : 56)
+      : (isLight ? 8 : 12);
+
+    data[index] = red;
+    data[index + 1] = green;
+    data[index + 2] = blue;
+    data[index + 3] = alphaBase + Math.floor(Math.random() * (isSparkle ? 30 : 14));
+  }
+
+  context.clearRect(0, 0, width, height);
+  context.putImageData(image, 0, 0);
+  context.globalCompositeOperation = "screen";
+  context.fillStyle = isLight ? "rgba(255, 255, 255, 0.015)" : "rgba(168, 194, 255, 0.018)";
+  context.fillRect(0, 0, width, height);
+  context.globalCompositeOperation = "source-over";
 }
 
 function formatTimestamp(value) {
