@@ -100,7 +100,7 @@ This project is released under the MIT License. See [LICENSE](LICENSE).
 
 ## Release
 
-- Current release: `v1.2.4`
+- Current release: `v1.2.5`
 - Publish date: `2026-04-04`
 - Release notes: [CHANGELOG.md](CHANGELOG.md)
 

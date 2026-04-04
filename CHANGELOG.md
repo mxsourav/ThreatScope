@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here.
 
+## [1.2.5] - 2026-04-04
+### Updated
+- Removed the roaming grain/canvas texture and replaced it with a cleaner cross-line background animation.
+- Added two subtle diagonal line fields that move in opposite directions across the page for an alternating up/down motion.
+- Kept the effect background-only so the layout, cards, and content remain unchanged.
+
 ## [1.2.4] - 2026-04-04
 ### Updated
 - Increased the ambient grain visibility so the texture reads clearly again without overwhelming the UI.

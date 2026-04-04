@@ -30,7 +30,6 @@ const state = {
   aiReady: false,
   apiBaseUrl: "",
   runtimeMode: "boot",
-  ambientNoise: null,
 };
 
 const els = {
@@ -72,13 +71,11 @@ const els = {
   statusText: document.getElementById("status-text"),
   yearNow: document.getElementById("yearNow"),
   buildStamp: document.getElementById("buildStamp"),
-  ambientNoise: document.getElementById("ambientNoise"),
 };
 
 function init() {
   initTheme();
   initApiBase();
-  initAmbientNoise();
   syncAdaptiveViewport();
   initTypewriter();
   startReleaseTimer();
@@ -284,7 +281,6 @@ function applyTheme(theme) {
   document.body.dataset.theme = theme;
   document.documentElement.style.colorScheme = theme;
   window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-  refreshAmbientNoise(true);
   if (els.themeBtn) {
     const label = theme === "dark" ? "Switch to light mode" : "Switch to dark mode";
     els.themeBtn.setAttribute("aria-label", label);
@@ -300,7 +296,6 @@ function syncAdaptiveViewport() {
 
   document.body.classList.toggle("is-mobile-ui", isCompactViewport);
   document.body.classList.toggle("is-android-ui", isAndroid && isCompactViewport);
-  resizeAmbientNoise();
 }
 
 async function hydrateAiStatus() {
@@ -882,216 +877,6 @@ function scoreToLevel(score) {
   if (numericScore >= 70) return "HIGH";
   if (numericScore >= 35) return "MEDIUM";
   return "LOW";
-}
-
-function initAmbientNoise() {
-  if (!els.ambientNoise || typeof els.ambientNoise.getContext !== "function") {
-    return;
-  }
-
-  const context = els.ambientNoise.getContext("2d", { alpha: true, desynchronized: true });
-  if (!context) {
-    return;
-  }
-
-  state.ambientNoise = {
-    canvas: els.ambientNoise,
-    context,
-    width: 0,
-    height: 0,
-    dpr: 1,
-    rafId: 0,
-    textureA: null,
-    textureB: null,
-    swapStartedAt: 0,
-    swapDuration: 4200,
-    phaseA: Math.random() * Math.PI * 2,
-    phaseB: Math.random() * Math.PI * 2,
-  };
-
-  resizeAmbientNoise(true, performance.now());
-
-  const tick = (timestamp) => {
-    if (!state.ambientNoise) return;
-    renderAmbientNoise(timestamp);
-    state.ambientNoise.rafId = window.requestAnimationFrame(tick);
-  };
-
-  state.ambientNoise.rafId = window.requestAnimationFrame(tick);
-}
-
-function resizeAmbientNoise(force = false, timestamp = performance.now()) {
-  if (!state.ambientNoise) return;
-
-  const dpr = 1;
-  const scale = 1;
-  const width = Math.max(320, Math.floor(window.innerWidth * dpr * scale));
-  const height = Math.max(320, Math.floor(window.innerHeight * dpr * scale));
-
-  if (!force && width === state.ambientNoise.width && height === state.ambientNoise.height) {
-    return;
-  }
-
-  const { canvas, context } = state.ambientNoise;
-  state.ambientNoise.width = width;
-  state.ambientNoise.height = height;
-  state.ambientNoise.dpr = dpr;
-  canvas.width = width;
-  canvas.height = height;
-  context.setTransform(1, 0, 0, 1, 0, 0);
-  context.imageSmoothingEnabled = true;
-  regenerateAmbientNoiseTextures(timestamp);
-  renderAmbientNoise(timestamp);
-}
-
-function refreshAmbientNoise(forceResize = false) {
-  if (!state.ambientNoise) return;
-  if (forceResize) {
-    resizeAmbientNoise(true, performance.now());
-    return;
-  }
-  regenerateAmbientNoiseTextures(performance.now());
-  renderAmbientNoise(performance.now());
-}
-
-function regenerateAmbientNoiseTextures(timestamp) {
-  if (!state.ambientNoise) return;
-
-  const { width, height } = state.ambientNoise;
-  state.ambientNoise.textureA = createAmbientNoiseTexture(width, height, 0);
-  state.ambientNoise.textureB = createAmbientNoiseTexture(width, height, 1);
-  state.ambientNoise.phaseA = Math.random() * Math.PI * 2;
-  state.ambientNoise.phaseB = Math.random() * Math.PI * 2;
-  state.ambientNoise.swapStartedAt = timestamp;
-}
-
-function renderAmbientNoise(timestamp) {
-  if (!state.ambientNoise) return;
-
-  const { context, width, height, textureA, textureB, swapStartedAt, swapDuration, phaseA, phaseB } = state.ambientNoise;
-  if (!textureA || !textureB) return;
-
-  let progress = Math.min(1, (timestamp - swapStartedAt) / swapDuration);
-  if (!Number.isFinite(progress)) {
-    progress = 0;
-  }
-
-  if (progress >= 1) {
-    state.ambientNoise.textureA = textureB;
-    state.ambientNoise.textureB = createAmbientNoiseTexture(width, height, Math.random());
-    state.ambientNoise.phaseA = phaseB;
-    state.ambientNoise.phaseB = Math.random() * Math.PI * 2;
-    state.ambientNoise.swapStartedAt = timestamp;
-    progress = 0;
-  }
-
-  const eased = progress * progress * (3 - 2 * progress);
-  const roamA = getAmbientRoam(timestamp, phaseA, 26, 18, 7600, 9100, 4800);
-  const roamB = getAmbientRoam(timestamp, phaseB, 34, 24, 8800, 10200, 5600);
-  const opacityA = 0.52 * (1 - eased);
-  const opacityB = 0.52 * eased;
-
-  context.clearRect(0, 0, width, height);
-  context.globalCompositeOperation = "source-over";
-  context.globalAlpha = opacityA;
-  drawAmbientLayer(context, textureA, width, height, 1.08, roamA.x, roamA.y);
-
-  context.globalAlpha = opacityB;
-  drawAmbientLayer(context, textureB, width, height, 1.08, roamB.x, roamB.y);
-
-  context.globalAlpha = 1;
-}
-
-function getAmbientRoam(timestamp, phase, radiusX, radiusY, speedX, speedY, speedMix) {
-  const x =
-    Math.sin(timestamp / speedX + phase) * radiusX +
-    Math.cos(timestamp / speedMix + phase * 0.63) * radiusX * 0.42;
-  const y =
-    Math.cos(timestamp / speedY + phase * 0.92) * radiusY +
-    Math.sin(timestamp / (speedMix * 0.86) + phase * 1.14) * radiusY * 0.38;
-
-  return { x, y };
-}
-
-function drawAmbientLayer(context, texture, width, height, scale, offsetX, offsetY) {
-  const drawWidth = width * scale;
-  const drawHeight = height * scale;
-  const x = (width - drawWidth) / 2 + offsetX;
-  const y = (height - drawHeight) / 2 + offsetY;
-  context.drawImage(texture, x, y, drawWidth, drawHeight);
-}
-
-function createAmbientNoiseTexture(width, height, seedOffset) {
-  const texture = document.createElement("canvas");
-  const textureWidth = Math.max(320, Math.floor(width * 0.5));
-  const textureHeight = Math.max(320, Math.floor(height * 0.5));
-  texture.width = textureWidth;
-  texture.height = textureHeight;
-
-  const textureContext = texture.getContext("2d", { alpha: true });
-  if (!textureContext) {
-    return texture;
-  }
-
-  const isLight = document.body.dataset.theme === "light";
-  const density = isLight ? 0.24 : 0.28;
-  const sparkleChance = isLight ? 0.006 : 0.008;
-  const image = textureContext.createImageData(textureWidth, textureHeight);
-  const data = image.data;
-
-  for (let index = 0; index < data.length; index += 4) {
-    const roll = Math.random();
-    if (roll > density && roll > density + sparkleChance) {
-      continue;
-    }
-
-    const toneRoll = Math.random();
-    let red = 246;
-    let green = 246;
-    let blue = 252;
-
-    if (toneRoll > 0.74) {
-      red = isLight ? 214 : 225;
-      green = isLight ? 229 : 234;
-      blue = 255;
-    } else if (toneRoll < 0.08) {
-      red = 255;
-      green = isLight ? 236 : 224;
-      blue = isLight ? 228 : 214;
-    }
-
-    const isSparkle = roll > density;
-    const alphaBase = isSparkle
-      ? (isLight ? 32 : 40)
-      : (isLight ? 9 : 12);
-
-    data[index] = red;
-    data[index + 1] = green;
-    data[index + 2] = blue;
-    data[index + 3] = alphaBase + Math.floor(Math.random() * (isSparkle ? 16 : 10));
-  }
-
-  textureContext.putImageData(image, 0, 0);
-  textureContext.globalCompositeOperation = "screen";
-  textureContext.fillStyle = isLight
-    ? `rgba(255, 255, 255, ${0.016 + (Number(seedOffset) % 1) * 0.004})`
-    : `rgba(168, 194, 255, ${0.02 + (Number(seedOffset) % 1) * 0.005})`;
-  textureContext.fillRect(0, 0, textureWidth, textureHeight);
-  textureContext.globalCompositeOperation = "source-over";
-
-  const softened = document.createElement("canvas");
-  softened.width = textureWidth;
-  softened.height = textureHeight;
-  const softenedContext = softened.getContext("2d", { alpha: true });
-  if (!softenedContext) {
-    return texture;
-  }
-
-  softenedContext.filter = "blur(0.45px)";
-  softenedContext.globalAlpha = 0.98;
-  softenedContext.drawImage(texture, 0, 0);
-  softenedContext.filter = "none";
-  return softened;
 }
 
 function formatTimestamp(value) {
