@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here.
 
+## [1.2.3] - 2026-04-04
+### Updated
+- Smoothed the animated background texture by crossfading slow noise fields instead of redrawing hard random static every cycle.
+- Reduced the harsh TV-static feel and shifted the motion toward softer, more cinematic surface shimmer.
+- Kept the canvas effect lightweight while preserving the same background-only layout behavior.
+
 ## [1.2.2] - 2026-04-04
 ### Updated
 - Replaced the CSS-only background grain with a live canvas-based shimmer layer for a finer Magic Eraser-style texture.
