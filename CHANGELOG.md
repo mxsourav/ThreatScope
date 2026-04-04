@@ -2,6 +2,15 @@
 
 All notable changes to this project are recorded here.
 
+## [1.2.0] - 2026-04-04
+### Updated
+- Refined the findings board so reasons and actions render as clearer indexed callouts with stronger visual separation.
+- Added capped internal scrolling to long output sections so the dashboard stays compact instead of stretching endlessly.
+- Reworked the NVIDIA explanation card for split-screen and medium-width layouts to prevent collapsed vertical text.
+- Added colored edge accents across findings, port exposure cards, trace cards, and attack-path cards for faster scanning.
+- Restored the browser-side static analysis fallback by wiring the missing threat-level scoring helper.
+- Audited the responsive layout across dark and light themes at multiple viewport sizes before publishing.
+
 ## [1.1.0] - 2026-04-04
 ### Updated
 - Reworked the control deck into wider horizontal module keys with clearer labels and calmer motion.

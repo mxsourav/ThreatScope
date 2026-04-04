@@ -578,8 +578,9 @@ function renderLogModule(module) {
   els.logFindingList.innerHTML = findings
     .map((finding) => {
       const evidence = (finding.evidence || []).map((item) => `<li>${escapeHtml(String(item))}</li>`).join("");
+      const tone = levelClass(finding.severity || "LOW");
       return `
-        <article class="finding-card">
+        <article class="finding-card tone-${tone}">
           <header>
             <strong>${escapeHtml(finding.title || "Finding")}</strong>
             <span class="severity-pill ${levelClass(finding.severity || "LOW")}">${escapeHtml(finding.severity || "LOW")}</span>
@@ -618,8 +619,9 @@ function renderPortModule(module) {
 
   els.openPortList.innerHTML = openPorts
     .map((entry) => {
+      const tone = levelClass(entry.risk || "LOW");
       return `
-        <article class="port-chip">
+        <article class="port-chip tone-${tone}">
           <header>
             <strong>${escapeHtml(String(entry.service))} : ${escapeHtml(String(entry.port))}</strong>
             <span class="severity-pill ${levelClass(entry.risk || "LOW")}">${escapeHtml(entry.risk || "LOW")}</span>
@@ -654,8 +656,9 @@ function renderCorrelationModule(module) {
   els.ruleTraceList.innerHTML = rules
     .map((rule) => {
       const evidence = (rule.evidence || []).map((item) => `<li>${escapeHtml(String(item))}</li>`).join("");
+      const tone = ruleWeightClass(rule.weight || 0);
       return `
-        <article class="trace-card">
+        <article class="trace-card tone-${tone}">
           <header>
             <strong>${escapeHtml(rule.title || "Rule")}</strong>
             <span class="trace-weight">+${escapeHtml(String(rule.weight || 0))}</span>
@@ -679,8 +682,9 @@ function renderCorrelationModule(module) {
 
   els.attackPathList.innerHTML = attackPaths
     .map((path) => {
+      const tone = levelClass(path.severity || "LOW");
       return `
-        <article class="path-card">
+        <article class="path-card tone-${tone}">
           <header>
             <strong>${escapeHtml(path.name || "Path")}</strong>
             <span class="severity-pill ${levelClass(path.severity || "LOW")}">${escapeHtml(path.severity || "LOW")}</span>
@@ -706,12 +710,20 @@ function renderMetricTiles(container, items) {
 }
 
 function renderList(container, items) {
+  const toneCycle = container?.id === "actionList"
+    ? ["green", "blue", "orange", "slate"]
+    : ["orange", "blue", "green", "red"];
+
   container.innerHTML = items
-    .map((item) => {
+    .map((item, index) => {
+      const tone = toneCycle[index % toneCycle.length];
       return `
-        <li>
-          <strong>${escapeHtml(item.title || "Item")}</strong>
-          <span>${escapeHtml(item.detail || "")}</span>
+        <li class="list-item tone-${tone}">
+          <span class="list-index">${String(index + 1).padStart(2, "0")}</span>
+          <div class="list-copy">
+            <strong>${escapeHtml(item.title || "Item")}</strong>
+            <span>${escapeHtml(item.detail || "")}</span>
+          </div>
         </li>
       `;
     })
@@ -851,6 +863,20 @@ function levelClass(level) {
   if (normalized.includes("high")) return "high";
   if (normalized.includes("medium")) return "medium";
   return "low";
+}
+
+function ruleWeightClass(weight) {
+  const numericWeight = Number(weight) || 0;
+  if (numericWeight >= 16) return "high";
+  if (numericWeight >= 10) return "medium";
+  return "neutral";
+}
+
+function scoreToLevel(score) {
+  const numericScore = Number(score) || 0;
+  if (numericScore >= 70) return "HIGH";
+  if (numericScore >= 35) return "MEDIUM";
+  return "LOW";
 }
 
 function formatTimestamp(value) {
