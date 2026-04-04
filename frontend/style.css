@@ -126,85 +126,69 @@ a {
   overflow: hidden;
   opacity: 1;
   background:
-    radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 34%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 28%, rgba(255, 255, 255, 0.02));
-  z-index: -3;
+    radial-gradient(circle at top, rgba(255, 255, 255, 0.045), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.014), transparent 28%, rgba(255, 255, 255, 0.018));
+  z-index: -1;
+  isolation: isolate;
 }
 
 .ambient-grid::before,
 .ambient-grid::after {
   content: "";
   position: absolute;
-  inset: -4%;
+  inset: -12%;
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .ambient-grid::before {
-  animation: dotDriftPrimary 22s ease-in-out infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.15' numOctaves='2' seed='7' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  mix-blend-mode: soft-light;
+  filter: contrast(165%) brightness(112%);
+  animation: grainDriftPrimary 8.5s steps(2, end) infinite;
 }
 
 .ambient-grid::after {
-  animation: dotDriftSecondary 30s ease-in-out infinite;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220' viewBox='0 0 220 220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='3' seed='19' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 260px 260px;
+  mix-blend-mode: overlay;
+  filter: contrast(180%) brightness(108%);
+  animation: grainDriftSecondary 11s steps(3, end) infinite;
 }
 
 body[data-theme="dark"] .ambient-grid {
   background:
-    radial-gradient(circle at 18% 14%, rgba(58, 160, 255, 0.08), transparent 28%),
-    radial-gradient(circle at 82% 24%, rgba(42, 96, 178, 0.08), transparent 24%),
-    radial-gradient(circle, rgba(178, 203, 230, 0.18) 1.15px, transparent 1.9px),
-    radial-gradient(circle, rgba(58, 160, 255, 0.08) 0.7px, transparent 1.5px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 24%, rgba(255, 255, 255, 0.022));
-  background-size: auto, auto, 15px 15px, 29px 29px, auto;
-  background-position: center, center, 0 0, 8px 8px, center;
-  opacity: 0.88;
+    radial-gradient(circle at 18% 14%, rgba(58, 160, 255, 0.072), transparent 28%),
+    radial-gradient(circle at 82% 24%, rgba(42, 96, 178, 0.07), transparent 24%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.024), transparent 24%, rgba(255, 255, 255, 0.018));
+  opacity: 0.92;
 }
 
 body[data-theme="dark"] .ambient-grid::before {
-  opacity: 0.34;
-  background:
-    radial-gradient(circle, rgba(210, 230, 255, 0.36) 1px, transparent 1.9px),
-    radial-gradient(circle, rgba(58, 160, 255, 0.16) 0.75px, transparent 1.55px);
-  background-size: 17px 17px, 31px 31px;
-  background-position: 0 0, 10px 10px;
+  opacity: 0.044;
 }
 
 body[data-theme="dark"] .ambient-grid::after {
-  opacity: 0.18;
-  background:
-    radial-gradient(circle, rgba(58, 160, 255, 0.22) 0.8px, transparent 1.75px),
-    radial-gradient(circle, rgba(255, 255, 255, 0.1) 0.6px, transparent 1.5px);
-  background-size: 26px 26px, 40px 40px;
-  background-position: 6px 6px, 18px 18px;
+  opacity: 0.028;
 }
 
 body[data-theme="light"] .ambient-grid {
   background:
-    radial-gradient(circle at 18% 14%, rgba(58, 160, 255, 0.08), transparent 28%),
-    radial-gradient(circle at 82% 24%, rgba(34, 197, 94, 0.05), transparent 22%),
-    radial-gradient(circle, rgba(95, 130, 165, 0.16) 1px, transparent 1.8px),
-    radial-gradient(circle, rgba(58, 160, 255, 0.08) 0.65px, transparent 1.4px),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 26%, rgba(205, 220, 236, 0.18));
-  background-size: auto, auto, 15px 15px, 29px 29px, auto;
-  background-position: center, center, 0 0, 8px 8px, center;
-  opacity: 0.98;
+    radial-gradient(circle at 18% 14%, rgba(58, 160, 255, 0.07), transparent 28%),
+    radial-gradient(circle at 82% 24%, rgba(34, 197, 94, 0.04), transparent 22%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), transparent 26%, rgba(205, 220, 236, 0.14));
+  opacity: 0.96;
 }
 
 body[data-theme="light"] .ambient-grid::before {
-  opacity: 0.3;
-  background:
-    radial-gradient(circle, rgba(87, 127, 168, 0.3) 1px, transparent 1.9px),
-    radial-gradient(circle, rgba(58, 160, 255, 0.16) 0.7px, transparent 1.55px);
-  background-size: 17px 17px, 31px 31px;
-  background-position: 0 0, 10px 10px;
+  opacity: 0.036;
 }
 
 body[data-theme="light"] .ambient-grid::after {
-  opacity: 0.16;
-  background:
-    radial-gradient(circle, rgba(58, 160, 255, 0.18) 0.8px, transparent 1.7px),
-    radial-gradient(circle, rgba(95, 130, 165, 0.11) 0.6px, transparent 1.45px);
-  background-size: 26px 26px, 40px 40px;
-  background-position: 6px 6px, 18px 18px;
+  opacity: 0.022;
 }
 
 .ambient-orb {
@@ -2939,29 +2923,62 @@ body.is-android-ui .module-grid {
   }
 }
 
-@keyframes dotDriftPrimary {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0.26;
+@keyframes grainDriftPrimary {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.034;
   }
 
-  50% {
-    transform: translate3d(-12px, 10px, 0);
-    opacity: 0.38;
+  18% {
+    transform: translate3d(-1px, 1px, 0) scale(1.01);
+    opacity: 0.052;
+  }
+
+  36% {
+    transform: translate3d(1px, -1px, 0) scale(1.015);
+    opacity: 0.04;
+  }
+
+  54% {
+    transform: translate3d(-0.5px, 0.75px, 0) scale(1.008);
+    opacity: 0.058;
+  }
+
+  72% {
+    transform: translate3d(1.25px, 0.5px, 0) scale(1.012);
+    opacity: 0.037;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.046;
   }
 }
 
-@keyframes dotDriftSecondary {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: 0.12;
+@keyframes grainDriftSecondary {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1.02);
+    opacity: 0.018;
   }
 
-  50% {
-    transform: translate3d(14px, -10px, 0);
-    opacity: 0.22;
+  22% {
+    transform: translate3d(1.5px, -0.75px, 0) scale(1.024);
+    opacity: 0.03;
+  }
+
+  44% {
+    transform: translate3d(-1px, 1.25px, 0) scale(1.018);
+    opacity: 0.022;
+  }
+
+  66% {
+    transform: translate3d(0.75px, 1px, 0) scale(1.023);
+    opacity: 0.034;
+  }
+
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.02);
+    opacity: 0.024;
   }
 }
 

@@ -2,6 +2,12 @@
 
 All notable changes to this project are recorded here.
 
+## [1.2.1] - 2026-04-04
+### Updated
+- Replaced the animated dotted backdrop with a softer full-screen grain layer for a calmer textured surface.
+- Added subtle film-noise flicker and micro-shift blending to the background without changing layout or readability.
+- Wired the Vercel frontend host to the live Render backend URL provided for hosted analysis mode.
+
 ## [1.2.0] - 2026-04-04
 ### Updated
 - Refined the findings board so reasons and actions render as clearer indexed callouts with stronger visual separation.
