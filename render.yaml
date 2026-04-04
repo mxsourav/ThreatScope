@@ -11,3 +11,7 @@ services:
         value: 3.11.9
       - key: THREATSCOPE_CORS_ORIGINS
         value: "*"
+      - key: NVIDIA_BASE_URL
+        value: https://integrate.api.nvidia.com/v1
+      - key: NVIDIA_MODEL
+        value: meta/llama3-70b-instruct

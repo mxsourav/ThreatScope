@@ -27,7 +27,10 @@ def generate_explanation(report: dict[str, Any]) -> dict[str, Any]:
 
     model = os.getenv("NVIDIA_MODEL", "meta/llama3-70b-instruct")
     client = OpenAI(
-        base_url=os.getenv("NVIDIA_API_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+        base_url=os.getenv(
+            "NVIDIA_BASE_URL",
+            os.getenv("NVIDIA_API_BASE_URL", "https://integrate.api.nvidia.com/v1"),
+        ),
         api_key=os.getenv("NVIDIA_API_KEY"),
     )
 

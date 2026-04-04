@@ -80,6 +80,7 @@ The backend is ready to deploy on Render through `render.yaml`.
 - Start command: `gunicorn backend.engine:app`
 - Default host binding: `0.0.0.0`
 - Default CORS policy: `*` for `/api/*`
+- NVIDIA env vars: `NVIDIA_API_KEY`, `NVIDIA_BASE_URL`, `NVIDIA_MODEL`
 
 After deploying the backend, you can point the frontend to it in either of two ways:
 

@@ -1,3 +1,3 @@
 window.THREATSCOPE_CONFIG = window.THREATSCOPE_CONFIG || {
-  apiBaseUrl: "",
+  apiBaseUrl: "https://threatscope-backend.onrender.com",
 };
