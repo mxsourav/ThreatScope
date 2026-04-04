@@ -1,0 +1,69 @@
+<svg width="520" height="360" viewBox="0 0 520 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="42" y1="24" x2="468" y2="336" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0F1723"/>
+      <stop offset="1" stop-color="#081018"/>
+    </linearGradient>
+    <radialGradient id="glowBlue" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(175 132) rotate(40.21) scale(169.264 155.647)">
+      <stop stop-color="#3AA0FF" stop-opacity="0.42"/>
+      <stop offset="1" stop-color="#3AA0FF" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="glowGreen" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(362 252) rotate(126.506) scale(146.552 149.452)">
+      <stop stop-color="#22C55E" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#22C55E" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shieldFill" x1="188" y1="92" x2="332" y2="248" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#172A3D"/>
+      <stop offset="1" stop-color="#0B1118"/>
+    </linearGradient>
+    <linearGradient id="ringStroke" x1="145" y1="92" x2="377" y2="270" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#65B8FF"/>
+      <stop offset="1" stop-color="#2FE58C"/>
+    </linearGradient>
+    <filter id="softGlow" x="78" y="40" width="364" height="276" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="18" result="blur"/>
+      <feBlend in="SourceGraphic" in2="blur" mode="screen"/>
+    </filter>
+  </defs>
+
+  <rect x="8" y="8" width="504" height="344" rx="34" fill="url(#bg)"/>
+  <rect x="8.75" y="8.75" width="502.5" height="342.5" rx="33.25" stroke="rgba(255,255,255,0.08)"/>
+  <rect x="28" y="28" width="464" height="304" rx="28" fill="url(#glowBlue)"/>
+  <rect x="28" y="28" width="464" height="304" rx="28" fill="url(#glowGreen)"/>
+
+  <g opacity="0.18">
+    <path d="M52 68H468" stroke="#8DB7E1" stroke-dasharray="2 10"/>
+    <path d="M52 292H468" stroke="#8DB7E1" stroke-dasharray="2 10"/>
+    <path d="M92 48V312" stroke="#8DB7E1" stroke-dasharray="2 10"/>
+    <path d="M428 48V312" stroke="#8DB7E1" stroke-dasharray="2 10"/>
+  </g>
+
+  <g filter="url(#softGlow)">
+    <circle cx="260" cy="170" r="96" stroke="url(#ringStroke)" stroke-width="2.2" stroke-opacity="0.4"/>
+    <circle cx="260" cy="170" r="74" stroke="url(#ringStroke)" stroke-width="1.8" stroke-opacity="0.34"/>
+    <circle cx="260" cy="170" r="52" stroke="url(#ringStroke)" stroke-width="1.4" stroke-opacity="0.3"/>
+  </g>
+
+  <path d="M260 82L329 112V182C329 222 302.5 254 260 272C217.5 254 191 222 191 182V112L260 82Z" fill="url(#shieldFill)" stroke="url(#ringStroke)" stroke-width="2.5"/>
+  <path d="M222 171C232.667 157.667 245.333 151 260 151C274.667 151 287.333 157.667 298 171C287.333 184.333 274.667 191 260 191C245.333 191 232.667 184.333 222 171Z" stroke="#B8DBFF" stroke-width="3" stroke-linejoin="round"/>
+  <circle cx="260" cy="171" r="14" fill="#3AA0FF"/>
+  <circle cx="260" cy="171" r="6" fill="#E9F4FF"/>
+  <path d="M260 105V124" stroke="#2FE58C" stroke-width="3" stroke-linecap="round"/>
+  <path d="M318 168H337" stroke="#3AA0FF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M183 168H202" stroke="#3AA0FF" stroke-width="3" stroke-linecap="round"/>
+  <path d="M224 230L214 244" stroke="#2FE58C" stroke-width="3" stroke-linecap="round"/>
+  <path d="M296 230L306 244" stroke="#2FE58C" stroke-width="3" stroke-linecap="round"/>
+
+  <g opacity="0.9">
+    <rect x="58" y="248" width="114" height="22" rx="11" fill="#111A24" stroke="#203347"/>
+    <circle cx="76" cy="259" r="5" fill="#22C55E"/>
+    <text x="90" y="264" fill="#B9D6F4" font-size="10" font-family="IBM Plex Mono, monospace" letter-spacing="0.16em">LOGIC FIRST</text>
+
+    <rect x="348" y="92" width="118" height="22" rx="11" fill="#111A24" stroke="#203347"/>
+    <circle cx="366" cy="103" r="5" fill="#3AA0FF"/>
+    <text x="380" y="108" fill="#B9D6F4" font-size="10" font-family="IBM Plex Mono, monospace" letter-spacing="0.14em">SIGNAL MAP</text>
+  </g>
+
+  <text x="56" y="304" fill="#F2F7FF" font-size="34" font-weight="700" font-family="Sora, Arial, sans-serif">ThreatScope</text>
+  <text x="56" y="327" fill="#7F9AB7" font-size="11" font-family="IBM Plex Mono, monospace" letter-spacing="0.28em">DRAFT IDENTITY MARK</text>
+</svg>

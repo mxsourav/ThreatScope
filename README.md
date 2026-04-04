@@ -69,13 +69,20 @@ python backend/engine.py
 
 Copy `.env.example` to `.env` and add your NVIDIA credentials if you want the optional explanation feature. The core analysis engine works without it.
 
+## GitHub Pages
+
+The repository includes a Pages workflow that publishes the frontend automatically from `main`.
+
+- Hosted mode keeps the dashboard usable with an in-browser fallback engine.
+- Live socket scanning and NVIDIA explanations still require the local Flask backend.
+
 ## Open source
 
 This project is released under the MIT License. See [LICENSE](LICENSE).
 
 ## Release
 
-- Current release: `v1.0.0`
+- Current release: `v1.1.0`
 - Publish date: `2026-04-04`
 - Release notes: [CHANGELOG.md](CHANGELOG.md)
 

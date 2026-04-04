@@ -27,6 +27,7 @@ const state = {
   },
   lastReport: null,
   aiReady: false,
+  runtimeMode: "boot",
 };
 
 const els = {
@@ -185,6 +186,10 @@ function bindHapticFeedback() {
 function updateModuleVisual(button, active) {
   button.classList.toggle("is-active", active);
   button.setAttribute("aria-pressed", String(active));
+  const flag = button.querySelector(".module-flag");
+  if (flag) {
+    flag.textContent = active ? "ON" : "OFF";
+  }
 }
 
 function enforceModuleState(preferredKey) {
@@ -240,35 +245,26 @@ function syncAdaptiveViewport() {
 
 async function hydrateAiStatus() {
   try {
-    const response = await fetch("/api/health");
+    const response = await fetch(buildApiUrl("api/health"));
     const data = await response.json();
     state.aiReady = Boolean(data.ai_explainer_ready);
+    state.runtimeMode = "backend";
     els.aiModelBadge.textContent = state.aiReady ? "READY" : "ENV";
   } catch {
     state.aiReady = false;
-    els.aiModelBadge.textContent = "ENV";
+    state.runtimeMode = "static";
+    els.aiModelBadge.textContent = "LOCAL";
   }
 }
 
 async function runAnalysis() {
   setButtonBusy(els.runAnalysisBtn, true, "Analyzing...");
-  setAiBrief("Rule engine is running. AI explanation stays separate until the analysis finishes.", "OFF");
+  setAiBrief("Rule engine is running. AI explanation stays separate until the analysis finishes.", state.runtimeMode === "static" ? "LOCAL" : "OFF");
 
   try {
-    const response = await fetch("/api/analyze", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(buildPayload()),
-    });
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error || "Analysis request failed.");
-    }
-
-    state.lastReport = data;
-    renderReport(data);
+    const report = await requestAnalysis(buildPayload());
+    state.lastReport = report;
+    renderReport(report);
   } catch (error) {
     setBanner("HIGH", "Analysis failed", error.message, 0, 0, 0, 0, 0);
     renderList(els.reasonList, [
@@ -280,7 +276,7 @@ async function runAnalysis() {
     renderList(els.actionList, [
       {
         title: "Next step",
-        detail: "Check that the backend is running on http://127.0.0.1:5000 and try again.",
+        detail: "Check the selected modules and telemetry input, then try again.",
       },
     ]);
   } finally {
@@ -290,7 +286,15 @@ async function runAnalysis() {
 
 async function generateAiBrief() {
   if (!state.lastReport) {
-    setAiBrief("Run the rule engine first so the AI layer has structured findings to explain.", "OFF");
+    setAiBrief("Run the rule engine first so the AI layer has structured findings to explain.", state.runtimeMode === "static" ? "LOCAL" : "OFF");
+    return;
+  }
+
+  if (!state.aiReady || state.runtimeMode === "static") {
+    setAiBrief(
+      "The static hosted build keeps scoring in the browser. NVIDIA explanation is available only when the local backend is running with a valid API key.",
+      "LOCAL"
+    );
     return;
   }
 
@@ -298,7 +302,7 @@ async function generateAiBrief() {
   setAiBrief("Generating an NVIDIA-backed explanation from the completed report...", "RUN");
 
   try {
-    const response = await fetch("/api/explain", {
+    const response = await fetch(buildApiUrl("api/explain"), {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -342,7 +346,7 @@ function clearWorkspace() {
   els.logInput.value = "";
   state.lastReport = null;
   resetBoard();
-  setAiBrief("AI remains optional. Generate a brief only after the rule engine completes a run.", state.aiReady ? "READY" : "OFF");
+  setAiBrief(getIdleAiMessage(), getIdleAiBadge());
 }
 
 function downloadStats() {
@@ -381,6 +385,38 @@ function buildPayload() {
   };
 }
 
+async function requestAnalysis(payload) {
+  try {
+    const response = await fetch(buildApiUrl("api/analyze"), {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+    });
+    const data = await response.json();
+
+    if (!response.ok) {
+      if ([404, 405].includes(response.status) || response.status >= 500) {
+        throw new Error("__STATIC_FALLBACK__");
+      }
+      throw new Error(data.error || "Analysis request failed.");
+    }
+
+    state.runtimeMode = "backend";
+    return data;
+  } catch (error) {
+    if (!(error instanceof TypeError) && error.message !== "__STATIC_FALLBACK__") {
+      throw error;
+    }
+
+    state.runtimeMode = "static";
+    state.aiReady = false;
+    els.aiModelBadge.textContent = "LOCAL";
+    return buildStaticReport(payload);
+  }
+}
+
 function renderReport(report) {
   const overall = report.overall || {};
   const logModule = report.modules?.log_analyzer || {};
@@ -403,14 +439,20 @@ function renderReport(report) {
     .map(([key]) => key.toUpperCase())
     .join(" / ");
 
-  els.analysisMeta.textContent = `Generated ${formatTimestamp(report.generated_at)} | Modules: ${modulesText || "NONE"} | Scan mode: ${portModule.mode || "N/A"}`;
+  const runtimeLabel = String(report.runtime_mode || state.runtimeMode || "static").toUpperCase();
+  els.analysisMeta.textContent = `Generated ${formatTimestamp(report.generated_at)} | Runtime: ${runtimeLabel} | Modules: ${modulesText || "NONE"} | Scan mode: ${portModule.mode || "N/A"}`;
 
   renderList(els.reasonList, normalizeReasonItems(overall.reasons));
   renderList(els.actionList, normalizeReasonItems(overall.suggested_actions, "Action"));
   renderLogModule(logModule);
   renderPortModule(portModule);
   renderCorrelationModule(correlationModule);
-  setAiBrief("Analysis complete. Generate the optional NVIDIA brief if you want a narrative explanation.", state.aiReady ? "READY" : "ENV");
+  setAiBrief(
+    state.runtimeMode === "static"
+      ? "Static hosted mode completed the rule analysis in-browser. For NVIDIA-backed narrative explanation or live socket checks, run the Flask backend locally."
+      : "Analysis complete. Generate the optional NVIDIA brief if you want a narrative explanation.",
+    state.runtimeMode === "static" ? "LOCAL" : state.aiReady ? "READY" : "ENV"
+  );
 }
 
 function renderLogModule(module) {
@@ -642,7 +684,7 @@ function resetBoard() {
     <article class="finding-card">
       <header>
         <strong>Log analyzer ready</strong>
-        <span class="severity-pill low">LOW</span>
+        <span class="severity-pill idle">NULL</span>
       </header>
       <p>Waiting for authentication, application, or system logs.</p>
     </article>
@@ -651,7 +693,7 @@ function resetBoard() {
     <article class="port-chip">
       <header>
         <strong>Port scanner ready</strong>
-        <span class="severity-pill low">LOW</span>
+        <span class="severity-pill idle">NULL</span>
       </header>
       <p>Waiting for a host, port list, or simulation profile.</p>
     </article>
@@ -669,12 +711,12 @@ function resetBoard() {
     <article class="path-card">
       <header>
         <strong>No attack path formed</strong>
-        <span class="severity-pill low">LOW</span>
+        <span class="severity-pill idle">NULL</span>
       </header>
       <p>Cross-module paths appear here after the first run.</p>
     </article>
   `;
-  setAiBrief("AI remains optional. Generate a brief only after the rule engine completes a run.", state.aiReady ? "READY" : "OFF");
+  setAiBrief(getIdleAiMessage(), getIdleAiBadge());
 }
 
 function setButtonBusy(button, isBusy, label) {
@@ -723,6 +765,425 @@ function formatTimestamp(value) {
   } catch {
     return value || "unknown time";
   }
+}
+
+function buildApiUrl(path) {
+  return new URL(path, window.location.href);
+}
+
+function getIdleAiBadge() {
+  if (state.aiReady) return "READY";
+  if (state.runtimeMode === "static") return "LOCAL";
+  return "OFF";
+}
+
+function getIdleAiMessage() {
+  if (state.runtimeMode === "static") {
+    return "Static hosted mode keeps the rule engine in-browser. NVIDIA explanation remains optional and requires the local backend with a valid API key.";
+  }
+  return "AI remains optional. Generate a brief only after the rule engine completes a run.";
+}
+
+function buildStaticReport(payload) {
+  const modules = payload.modules || {};
+  const logsEnabled = Boolean(modules.logs);
+  const portsEnabled = Boolean(modules.ports);
+  const correlationEnabled = Boolean(modules.correlation);
+
+  if (!logsEnabled && !portsEnabled && !correlationEnabled) {
+    throw new Error("Enable at least one module before running an analysis.");
+  }
+
+  if (correlationEnabled && !logsEnabled && !portsEnabled) {
+    throw new Error("Correlation needs log analysis, port scanning, or both to produce output.");
+  }
+
+  const logAnalysis = logsEnabled ? analyzeStaticLogs(payload.logText || "") : disabledStaticModule("log_analyzer");
+  const portAnalysis = portsEnabled
+    ? analyzeStaticPorts(payload.scanTarget || {})
+    : disabledStaticModule("port_scanner");
+  const correlation = correlationEnabled
+    ? correlateStatic(logAnalysis, portAnalysis, logsEnabled, portsEnabled)
+    : disabledStaticModule("correlation");
+
+  const overall = correlationEnabled
+    ? {
+        threat_level: correlation.risk_level,
+        score: correlation.score,
+        confidence: correlation.confidence,
+        headline: correlation.headline,
+        reasons: correlation.reasons,
+        suggested_actions: correlation.recommended_actions,
+      }
+    : buildStaticOverall(logAnalysis, portAnalysis);
+
+  const suppliedLines = String(payload.logText || "")
+    .split(/\r?\n/)
+    .filter((line) => line.trim()).length;
+
+  return {
+    generated_at: new Date().toISOString(),
+    runtime_mode: "static",
+    input_profile: {
+      modules: {
+        logs: logsEnabled,
+        ports: portsEnabled,
+        correlation: correlationEnabled,
+      },
+      scan_target: {
+        host: payload.scanTarget?.host || "127.0.0.1",
+        ports: parsePorts(payload.scanTarget?.ports),
+        simulate: Boolean(payload.scanTarget?.simulate),
+        profile: payload.scanTarget?.simulate ? payload.scanTarget?.profile || payload.scanTarget?.host || "profile" : null,
+      },
+      log_lines_supplied: suppliedLines,
+    },
+    overall,
+    modules: {
+      log_analyzer: logAnalysis,
+      port_scanner: portAnalysis,
+      correlation,
+    },
+  };
+}
+
+function buildStaticOverall(logAnalysis, portAnalysis) {
+  const dominant = [logAnalysis, portAnalysis].sort((a, b) => (b.score || 0) - (a.score || 0))[0];
+  return {
+    threat_level: dominant.risk_level || "LOW",
+    score: dominant.score || 0,
+    confidence: dominant.enabled ? 0.55 : 0,
+    headline: "Correlation module is disabled; showing the highest single-module risk.",
+    reasons: dominant.reasoning || [],
+    suggested_actions: dominant.actions || [],
+  };
+}
+
+function disabledStaticModule(name) {
+  return {
+    enabled: false,
+    module: name,
+    risk_level: "LOW",
+    score: 0,
+    summary: {},
+    reasoning: [],
+    actions: [],
+  };
+}
+
+function analyzeStaticLogs(rawText) {
+  const lines = String(rawText || "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (!lines.length) {
+    return {
+      enabled: true,
+      risk_level: "LOW",
+      score: 0,
+      summary: {
+        lines_processed: 0,
+        failed_login_count: 0,
+        suspicious_ip_count: 0,
+        off_hours_count: 0,
+        pattern_matches: 0,
+        privilege_escalation_count: 0,
+      },
+      findings: [],
+      reasoning: [],
+      actions: ["Provide raw auth, system, or application logs to activate log correlation."],
+      success_after_failure: [],
+    };
+  }
+
+  const failedEvents = [];
+  const suspiciousPatterns = [];
+  const offHours = [];
+  const privilegeEvents = [];
+  const successfulAfterFailure = [];
+  const ipHits = new Map();
+  let score = 0;
+
+  lines.forEach((line, index) => {
+    const sample = clipLine(line);
+    const ip = extractStaticIp(line);
+    const hour = extractStaticHour(line);
+    const lowered = line.toLowerCase();
+
+    if (ip) {
+      ipHits.set(ip, (ipHits.get(ip) || 0) + 1);
+    }
+
+    if (hour !== null && (hour < 6 || hour >= 22)) {
+      offHours.push(sample);
+    }
+
+    if (/failed password|authentication failure|invalid user|login failed|failed login/i.test(lowered)) {
+      failedEvents.push(sample);
+    }
+
+    if (/accepted password|accepted publickey|session opened|login succeeded|logged in/i.test(lowered) && failedEvents.length) {
+      successfulAfterFailure.push(sample);
+    }
+
+    if (/sudo:.*authentication failure|permission denied|user=root|pam_unix\(sudo:auth\)/i.test(lowered)) {
+      privilegeEvents.push(sample);
+    }
+
+    if (/or\s+1=1|union\s+select|\.\.\/|etc\/passwd|<script|wp-admin|password spray|brute force|credential stuffing|sqlmap|nmap|masscan|nikto/i.test(lowered)) {
+      suspiciousPatterns.push(sample);
+    }
+  });
+
+  const suspiciousIpCount = [...ipHits.values()].filter((count) => count >= 2).length;
+  if (failedEvents.length >= 3) score += failedEvents.length >= 8 ? 28 : 16;
+  if (suspiciousPatterns.length) score += suspiciousPatterns.length >= 3 ? 30 : 20;
+  if (offHours.length) score += offHours.length >= 4 ? 14 : 8;
+  if (privilegeEvents.length) score += privilegeEvents.length >= 3 ? 32 : 22;
+  if (suspiciousIpCount) score += suspiciousIpCount >= 2 ? 18 : 12;
+  if (successfulAfterFailure.length) score += 18;
+  score = Math.min(score, 100);
+
+  const reasoning = [];
+  if (failedEvents.length >= 3) reasoning.push({ title: "Repeated login failures", detail: `${failedEvents.length} failed login events were detected in the supplied log set.` });
+  if (suspiciousPatterns.length) reasoning.push({ title: "Suspicious attack strings detected", detail: `${suspiciousPatterns.length} log lines matched exploit or recon indicators.` });
+  if (offHours.length) reasoning.push({ title: "Unusual timing window", detail: `${offHours.length} events occurred outside the expected daytime window.` });
+  if (privilegeEvents.length) reasoning.push({ title: "Privilege escalation indicators", detail: `${privilegeEvents.length} lines suggest privileged access attempts or denials.` });
+
+  const findings = [];
+  if (failedEvents.length) findings.push({ title: "Failed login cluster", severity: failedEvents.length >= 10 ? "HIGH" : "MEDIUM", detail: `${failedEvents.length} failed authentication events were found.`, evidence: failedEvents.slice(0, 2) });
+  if (offHours.length) findings.push({ title: "Off-hours activity", severity: "MEDIUM", detail: `${offHours.length} events landed in the overnight monitoring window.`, evidence: offHours.slice(0, 2) });
+  if (suspiciousPatterns.length) findings.push({ title: "Exploit or recon indicators", severity: "HIGH", detail: `${suspiciousPatterns.length} lines matched suspicious attack strings.`, evidence: suspiciousPatterns.slice(0, 2) });
+  if (privilegeEvents.length) findings.push({ title: "Privileged access pressure", severity: "HIGH", detail: `${privilegeEvents.length} lines indicate sudo, root, or permission escalation attempts.`, evidence: privilegeEvents.slice(0, 2) });
+  if (successfulAfterFailure.length) findings.push({ title: "Success after failure", severity: "HIGH", detail: "A successful session followed a related failed authentication pattern.", evidence: successfulAfterFailure.slice(0, 2) });
+
+  return {
+    enabled: true,
+    risk_level: scoreToLevel(score),
+    score,
+    summary: {
+      lines_processed: lines.length,
+      failed_login_count: failedEvents.length,
+      suspicious_ip_count: suspiciousIpCount,
+      off_hours_count: offHours.length,
+      pattern_matches: suspiciousPatterns.length,
+      privilege_escalation_count: privilegeEvents.length,
+    },
+    findings,
+    reasoning,
+    actions: [
+      "Retain recent auth and application logs for continued correlation.",
+      "Review authentication controls and lockout policy for the targeted accounts.",
+    ],
+    success_after_failure: successfulAfterFailure.map((sample) => ({ sample })),
+  };
+}
+
+function analyzeStaticPorts(scanTarget) {
+  const host = String(scanTarget.host || "127.0.0.1").trim() || "127.0.0.1";
+  const simulate = Boolean(scanTarget.simulate);
+  const inputPorts = parsePorts(scanTarget.ports);
+  const openPorts = simulate ? simulateProfilePorts(scanTarget.profile || host, inputPorts) : inputPorts;
+  let score = 0;
+  let highRisk = 0;
+  let remoteAdmin = 0;
+
+  const mappedPorts = openPorts.map((port) => {
+    const mapped = mapPort(port);
+    score += mapped.weight;
+    if (mapped.weight >= 26) highRisk += 1;
+    if (["remote-admin", "legacy-admin"].includes(mapped.surface)) remoteAdmin += 1;
+    return mapped;
+  });
+
+  if (highRisk) score += highRisk === 1 ? 18 : 28;
+  if (remoteAdmin >= 2) score += 12;
+  score = Math.min(score, 100);
+
+  const reasoning = [
+    {
+      title: simulate ? "Simulated exposure review" : "Static hosted surface review",
+      detail: simulate
+        ? `${mappedPorts.length} simulated services were exposed by the selected profile.`
+        : "Browser-hosted mode evaluates the listed ports as declared exposure because live socket scanning is unavailable in static hosting.",
+    },
+  ];
+
+  if (highRisk) {
+    reasoning.push({
+      title: "High-risk services exposed",
+      detail: `${highRisk} exposed services are commonly abused when reachable.`,
+    });
+  }
+
+  return {
+    enabled: true,
+    mode: simulate ? "SIMULATED" : "STATIC REVIEW",
+    scan_status: simulate ? "COMPLETE" : "DECLARED",
+    target: host,
+    risk_level: scoreToLevel(score),
+    score,
+    summary: {
+      ports_checked: inputPorts.length,
+      open_port_count: mappedPorts.length,
+      high_risk_open_ports: highRisk,
+      remote_admin_surfaces: remoteAdmin,
+    },
+    open_ports: mappedPorts.map((port) => ({
+      port: port.port,
+      service: port.service,
+      risk: port.risk,
+      surface: port.surface,
+      detail: port.detail,
+      recommended_action: port.action,
+    })),
+    closed_ports: [],
+    reasoning,
+    actions: [
+      "Re-scan after remediation to confirm the attack surface has been reduced.",
+      "Use the local backend build when you need live socket checks against a real host.",
+    ],
+    error: null,
+  };
+}
+
+function correlateStatic(logAnalysis, portAnalysis, logsEnabled, portsEnabled) {
+  const logScore = logsEnabled ? Number(logAnalysis.score || 0) : 0;
+  const portScore = portsEnabled ? Number(portAnalysis.score || 0) : 0;
+  let score = Math.round(logScore * 0.6 + portScore * 0.4);
+  const failedLogins = Number(logAnalysis.summary?.failed_login_count || 0);
+  const offHours = Number(logAnalysis.summary?.off_hours_count || 0);
+  const privilegeEscalation = Number(logAnalysis.summary?.privilege_escalation_count || 0);
+  const patternMatches = Number(logAnalysis.summary?.pattern_matches || 0);
+  const successAfterFailure = Array.isArray(logAnalysis.success_after_failure) ? logAnalysis.success_after_failure.length : 0;
+  const openPortNumbers = new Set((portAnalysis.open_ports || []).map((item) => Number(item.port)));
+  const rules = [];
+  const reasons = [];
+  const attackPaths = [];
+  const actions = new Set([...(logAnalysis.actions || []), ...(portAnalysis.actions || [])]);
+
+  if (failedLogins >= 5 && openPortNumbers.has(22)) {
+    addStaticRule(rules, reasons, attackPaths, 18, "Credential pressure on exposed SSH", "Multiple failed logins align with an exposed SSH service.", "Remote access brute-force path");
+    actions.add("Restrict SSH exposure to trusted addresses.");
+  }
+  if (failedLogins >= 5 && openPortNumbers.has(3389)) {
+    addStaticRule(rules, reasons, attackPaths, 18, "Credential pressure on exposed RDP", "Authentication failures align with a reachable remote desktop service.", "Remote desktop intrusion path");
+    actions.add("Move RDP behind VPN or a bastion host.");
+  }
+  if (patternMatches >= 1 && ([80, 443, 8080].some((port) => openPortNumbers.has(port)))) {
+    addStaticRule(rules, reasons, attackPaths, 16, "Exploit strings against exposed web services", "Web attack signatures were found while HTTP or HTTPS services are reachable.", "Application-layer intrusion path");
+    actions.add("Inspect web server access logs and WAF events around the matched requests.");
+  }
+  if (privilegeEscalation >= 1 && ([22, 3389, 445].some((port) => openPortNumbers.has(port)))) {
+    addStaticRule(rules, reasons, attackPaths, 15, "Privilege escalation near an administrative surface", "Privileged access attempts occurred while remote administration services were available.", "Lateral movement and privilege escalation path");
+  }
+  if (offHours >= 2 && ([22, 3389, 5432, 6379, 9200].some((port) => openPortNumbers.has(port)))) {
+    addStaticRule(rules, reasons, attackPaths, 10, "Off-hours activity around sensitive services", "Nighttime activity coincides with services that warrant closer oversight.", "Low-visibility persistence window");
+  }
+  if (successAfterFailure >= 1) {
+    addStaticRule(rules, reasons, attackPaths, 18, "Potential brute-force success path", "A successful session appeared after related failed login attempts.", "Credential compromise path");
+  }
+
+  score += rules.reduce((sum, rule) => sum + rule.weight, 0);
+  score = Math.min(score, 100);
+
+  if (!reasons.length) {
+    reasons.push({
+      title: score >= 35 ? "Single-module elevated finding" : "Limited correlated risk",
+      detail: score >= 35
+        ? "One enabled module produced a meaningful risk score even without cross-module confirmation."
+        : "The current data did not trigger strong multi-condition threat rules.",
+    });
+  }
+
+  return {
+    enabled: true,
+    risk_level: scoreToLevel(score),
+    score,
+    confidence: Math.min(0.97, 0.48 + (logsEnabled ? 0.1 : 0) + (portsEnabled ? 0.1 : 0) + (0.05 * rules.length)),
+    headline: score >= 70
+      ? "Multiple signals align into a likely active threat path."
+      : score >= 35
+        ? "Cross-signal risk is present and warrants active monitoring."
+        : "Current evidence suggests a contained or low-confidence threat posture.",
+    reasons,
+    rules_fired: rules,
+    attack_paths: attackPaths,
+    recommended_actions: [...actions].sort(),
+  };
+}
+
+function addStaticRule(rules, reasons, attackPaths, weight, title, detail, pathName) {
+  rules.push({ title, detail, weight, evidence: [] });
+  reasons.push({ title, detail });
+  attackPaths.push({ name: pathName, severity: scoreToLevel(weight * 4), summary: detail });
+}
+
+function parsePorts(rawPorts) {
+  const source = String(rawPorts || "")
+    .split(",")
+    .map((chunk) => Number(chunk.trim()))
+    .filter((port) => Number.isInteger(port) && port >= 1 && port <= 65535);
+
+  return [...new Set(source)].sort((a, b) => a - b).slice(0, 32).length
+    ? [...new Set(source)].sort((a, b) => a - b).slice(0, 32)
+    : [21, 22, 23, 25, 53, 80, 110, 143, 443, 445, 3389, 5432, 5900, 6379, 8080, 9200];
+}
+
+function simulateProfilePorts(profile, allowedPorts) {
+  const normalized = String(profile || "").toLowerCase();
+  let simulated = [22, 80, 443, 8080];
+  if (normalized.includes("db")) simulated = [22, 5432, 6379];
+  if (normalized.includes("remote") || normalized.includes("rdp")) simulated = [22, 3389, 445];
+  return simulated.filter((port) => allowedPorts.includes(port));
+}
+
+function mapPort(port) {
+  const serviceMap = {
+    21: ["FTP", 22, "legacy-transfer", "Legacy file transfer channel", "Disable FTP or replace it with SFTP."],
+    22: ["SSH", 16, "remote-admin", "Remote administration surface", "Restrict SSH to trusted sources and key-based auth."],
+    23: ["Telnet", 36, "legacy-admin", "Cleartext remote administration", "Close Telnet immediately and replace it with SSH."],
+    25: ["SMTP", 10, "mail", "Mail transfer service", "Confirm the mail relay is expected and hardened."],
+    53: ["DNS", 9, "infra", "Domain name resolution service", "Verify recursion and access policy."],
+    80: ["HTTP", 10, "web", "Web application surface", "Review web logs and enforce redirects to HTTPS."],
+    443: ["HTTPS", 8, "web", "Encrypted web application surface", "Keep TLS and web application patches current."],
+    445: ["SMB", 30, "lateral-movement", "File sharing and lateral movement surface", "Restrict SMB to internal trusted networks only."],
+    3389: ["RDP", 28, "remote-admin", "Remote desktop administration surface", "Protect RDP with VPN, MFA, and IP allow-lists."],
+    5432: ["PostgreSQL", 20, "data-store", "Database listener", "Keep the database private and limit direct client access."],
+    5900: ["VNC", 26, "remote-admin", "Remote screen-sharing surface", "Close VNC externally or tunnel it through trusted paths."],
+    6379: ["Redis", 32, "data-store", "High-risk in-memory datastore when exposed", "Bind Redis privately and require authentication."],
+    8080: ["HTTP-Alt", 14, "web", "Alternate web or admin listener", "Confirm the alternate web port is intentional and patched."],
+    9200: ["Elasticsearch", 30, "data-store", "Search API surface commonly abused when public", "Keep Elasticsearch private behind authenticated access."],
+  };
+  const [service, weight, surface, detail, action] = serviceMap[port] || ["Unknown", 8, "generic", "Unmapped network listener", "Validate why this service is exposed and whether it should remain open."];
+  return {
+    port,
+    service,
+    weight,
+    surface,
+    detail,
+    action,
+    risk: scoreToLevel(weight),
+  };
+}
+
+function extractStaticIp(line) {
+  const match = String(line).match(/(?<!\d)(?:\d{1,3}\.){3}\d{1,3}(?!\d)/);
+  return match ? match[0] : null;
+}
+
+function extractStaticHour(line) {
+  const isoMatch = String(line).match(/(?:\d{4}-\d{2}-\d{2}[ T])(\d{2}):\d{2}/);
+  if (isoMatch) return Number(isoMatch[1]);
+  const syslogMatch = String(line).match(/[A-Za-z]{3}\s+\d{1,2}\s+(\d{2}):\d{2}:\d{2}/);
+  if (syslogMatch) return Number(syslogMatch[1]);
+  return null;
+}
+
+function clipLine(line, limit = 140) {
+  const normalized = String(line).replace(/\s+/g, " ").trim();
+  return normalized.length > limit ? `${normalized.slice(0, limit - 3)}...` : normalized;
 }
 
 function renderMarkdownLite(markdown) {

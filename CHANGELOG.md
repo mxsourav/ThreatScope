@@ -2,6 +2,18 @@
 
 All notable changes to this project are recorded here.
 
+## [1.1.0] - 2026-04-04
+### Updated
+- Reworked the control deck into wider horizontal module keys with clearer labels and calmer motion.
+- Tightened action buttons into a more mechanical keyboard style with stronger press depth and reduced padding.
+- Tuned light mode toward a cleaner white and sky-blue finish with higher text readability.
+- Swapped idle `LOW` placeholders to yellow `NULL` states for ready-only cards.
+- Added footer credit and GitHub profile link for MX SOURAV.
+
+### Added
+- Static-host fallback analysis path so the frontend can still run from GitHub Pages without the Flask backend.
+- GitHub Pages deployment workflow for publishing the frontend automatically from `main`.
+
 ## [1.0.0] - 2026-04-04
 ### Published
 - First public release of ThreatScope.
