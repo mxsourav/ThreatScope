@@ -1,6 +1,6 @@
 # ThreatScope
 
-<!-- Header image placeholder: add the project banner here later. -->
+<p align="center">`n  <img src="assets/banner.png" alt="ThreatScope Banner" width="100%">`n</p>
 
 ThreatScope is a web-based cybersecurity analysis dashboard built for structured, logic-first threat review. It analyzes raw logs, checks exposed services, and correlates the results into a clear threat rating with concrete reasons and response suggestions.
 
